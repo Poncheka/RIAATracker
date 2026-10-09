@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <radialGradient id="g" cx="36%" cy="30%" r="80%">
+      <stop offset="0" stop-color="#fbe9a0"/><stop offset=".45" stop-color="#e2b84a"/><stop offset=".8" stop-color="#b8892a"/><stop offset="1" stop-color="#7a5a12"/>
+    </radialGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff" stop-opacity=".25"/>
+    </linearGradient>
+  </defs>
+  <circle cx="256" cy="256" r="248" fill="url(#g)"/>
+  <g fill="none" stroke="#5c430c" stroke-opacity=".28" stroke-width="2">
+    <circle cx="256" cy="256" r="232"/><circle cx="256" cy="256" r="220"/><circle cx="256" cy="256" r="208"/><circle cx="256" cy="256" r="196"/>
+    <circle cx="256" cy="256" r="184"/><circle cx="256" cy="256" r="172"/><circle cx="256" cy="256" r="160"/><circle cx="256" cy="256" r="148"/>
+  </g>
+  <ellipse cx="190" cy="150" rx="150" ry="70" transform="rotate(-35 190 150)" fill="#fff" opacity=".16"/>
+  <circle cx="256" cy="256" r="128" fill="#0b0d0c" stroke="#3a2c08" stroke-width="4"/>
+  <circle cx="256" cy="256" r="118" fill="none" stroke="#3ddc84" stroke-opacity=".5" stroke-width="2"/>
+  <text x="256" y="262" text-anchor="middle" dominant-baseline="middle" font-family="Figtree, 'Arial Black', system-ui, sans-serif" font-weight="900" font-size="62" letter-spacing="-2" fill="#f6dc7a">WMP?</text>
+  <circle cx="256" cy="318" r="6" fill="#3ddc84"/>
+</svg>

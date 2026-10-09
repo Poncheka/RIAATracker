@@ -263,7 +263,7 @@ footer p { margin: 0; max-width: 52em; }
 .sc-glow { position: absolute; width: 1000px; height: 1000px; border-radius: 50%; top: 160px; left: 40px; background: var(--tone); filter: blur(180px); opacity: .22; }
 .sc > :not(.sc-grid, .sc-glow, .sc-rays, .sc-confetti) { position: relative; }
 .sc-kicker { white-space: nowrap; font: 500 36px/1 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--tone); }
-.sc-ring { width: 640px; height: 640px; margin-top: 70px; position: relative; }
+.sc-ring { width: 640px; height: 640px; margin-top: 60px; position: relative; }
 .sc-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
 .sc-ring .sc-medal { position: absolute; inset: 0; margin: auto; }
 .sc-medal { --s: 360px; width: var(--s); height: var(--s); border-radius: 50%; display: grid; place-items: center; position: relative;
@@ -289,7 +289,7 @@ footer p { margin: 0; max-width: 52em; }
 .sc-foot { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-top: 48px; font: 500 30px/1 var(--font-mono); color: var(--fg-3); }
 .sc-foot img { height: 52px; }
 
-.sc-cele { padding-top: 110px; }
+.sc-cele { padding-top: 150px; }
 .sc-rays { position: absolute; width: 1800px; height: 1800px; left: -360px; top: -180px; border-radius: 50%; opacity: .16;
   background: repeating-conic-gradient(from 0deg, var(--tone) 0 6deg, transparent 6deg 18deg); -webkit-mask: radial-gradient(circle, #000 0, transparent 62%); mask: radial-gradient(circle, #000 0, transparent 62%); }
 .sc-confetti { position: absolute !important; inset: 0; }
@@ -297,6 +297,8 @@ footer p { margin: 0; max-width: 52em; }
 .sc-shout { font-size: 150px !important; margin-top: 40px !important; text-wrap: balance; }
 .sc-shout em { background: linear-gradient(180deg, var(--m1, var(--gold-1)), var(--tone)); -webkit-background-clip: text; background-clip: text; color: transparent !important; }
 .sc-cele.gold .sc-shout em { background-image: linear-gradient(180deg, var(--gold-1), var(--gold-2)); }
+.sc-cele.plat .sc-shout em { background-image: linear-gradient(180deg, #ffffff, var(--plat-2)); }
+.sc-cele.diamond .sc-shout em { background-image: linear-gradient(180deg, var(--dia-1), var(--dia-2)); }
 .sc-hero { margin-top: 70px; filter: drop-shadow(0 0 80px color-mix(in srgb, var(--tone) 45%, transparent)); }
 .sc-sub { margin-top: 56px; font: 400 40px/1.35 var(--font-body); color: var(--fg-2); }
 .sc-sub b { color: var(--fg); font-weight: 600; }
@@ -349,3 +351,24 @@ footer p { margin: 0; max-width: 52em; }
 .hole.plat { background: conic-gradient(var(--plat-2) calc(var(--p) * 1%), #1d211f 0); }
 .hole.plat i { color: var(--plat-1); }
 .sc-wall .sc-foot { margin-top: auto; }
+
+/* connect modal: loader + resume pill */
+#mogul-connect { position: relative; }
+.embed-loader { position: absolute; inset: 0; display: none; place-items: center; align-content: center; gap: 14px; color: var(--fg-2); font-size: 14px; }
+.loading-embed .embed-loader { display: grid; }
+.loading-embed iframe { opacity: 0; }
+.spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--line-2); border-top-color: var(--green); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+#resume-pill { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 30; display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 1px solid var(--line-2); border-radius: 999px; padding: 8px 8px 8px 18px; box-shadow: 0 20px 40px -10px rgba(0,0,0,.8); font-size: 14px; white-space: nowrap; }
+.pill-cancel { background: none; border: 0; color: var(--fg-3); cursor: pointer; font-size: 13px; padding: 6px 10px; }
+.pill-cancel:hover { color: var(--fg); }
+/* row share */
+.prog-foot .meta { display: inline-flex; align-items: center; gap: 14px; }
+.row-share { display: inline-flex; align-items: center; gap: 6px; background: none; border: 1px solid var(--line-2); color: var(--fg-2); border-radius: 999px; padding: 5px 10px; font: 500 12px/1 var(--font-body); cursor: pointer; }
+.row-share svg { width: 13px; height: 13px; }
+.row-share:hover { color: var(--fg); border-color: var(--green); }
+
+.wmp-head { width: 26px; height: 26px; flex: none; }
+.modal[hidden] { display: none; }
+.share-modal { z-index: 40; }

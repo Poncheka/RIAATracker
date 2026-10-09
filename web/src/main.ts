@@ -2,9 +2,11 @@ import "./styles.css";
 import logoUrl from "./mogul-logo.svg";
 import { openShare } from "./share.ts";
 import dkLogo from "./distrokid.png";
+import wmpIcon from "./wmp-icon.svg";
 const dk = (cls = "dk-mark") => `<img class="${cls}" src="${dkLogo}" alt="" aria-hidden="true">`;
 const linkIcon = `<svg class="dk-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>`;
 const CONNECT = "Connect label or distributor";
+const shareIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/></svg>`;
 const SOURCE_NAMES: Record<string, string> = { DISTROKID: "DistroKid", CD_BABY: "CD Baby", TUNECORE: "TuneCore", UNITEDMASTERS: "UnitedMasters", AWAL: "AWAL", AMUSE: "Amuse", BELIEVE: "Believe" };
 const sourceName = (t?: string) => (t ? SOURCE_NAMES[t] ?? t.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "your distributor");
 const sourceMark = (t?: string) => (t === "DISTROKID" ? dk("dk-inline") : "");
@@ -83,7 +85,7 @@ function footer() {
   </footer>`;
 }
 
-function progressRow(i: CertItem, compact = false) {
+function progressRow(i: CertItem, compact = false, shareable = false) {
   const close = i.next.pct >= 0.9 || (i.monthsToNext !== null && i.monthsToNext <= 2);
   const per = i.type === "album" ? STREAMS_PER_ALBUM_UNIT : STREAMS_PER_SINGLE_UNIT;
   const sub = i.type === "album" ? `Album · ${i.trackCount} tracks` : i.current.level === "none" || compact ? "Single" : `Single · ${i.current.label} now`;
@@ -94,7 +96,7 @@ function progressRow(i: CertItem, compact = false) {
       <div class="prog-left"><b class="num">${big(i.next.remaining)}</b><small>to ${esc(i.next.label)}</small></div>
     </div>
     <div class="bar ${close ? "hot" : ""}"><i style="width:${Math.max(1.5, i.next.pct * 100).toFixed(1)}%"></i></div>
-    ${compact ? "" : `<div class="prog-foot"><span class="${close ? "hot" : ""}">${esc(i.headline)}</span><span class="meta">≈ ${big(i.next.remaining * per)} more US streams</span></div>`}
+    ${compact ? "" : `<div class="prog-foot"><span class="${close ? "hot" : ""}">${esc(i.headline)}</span><span class="meta">≈ ${big(i.next.remaining * per)} more US streams${shareable ? `<button class="row-share" data-share-item="${esc(i.id)}" aria-label="Share ${esc(i.title)}">${shareIcon}Share</button>` : ""}</span></div>`}
   </div>`;
 }
 
@@ -172,7 +174,6 @@ function renderResults(r: Results, ctx: Ctx) {
     <section class="summary">
       <div class="summary-top">
         <div>
-          <div class="eyebrow">${esc(ctx.name)}</div>
           ${verdict}
         </div>
         <div class="summary-actions">
@@ -193,12 +194,12 @@ function renderResults(r: Results, ctx: Ctx) {
         </div>`).join("")}</div>
     </section>` : top ? `<section class="section">
       <div class="section-head"><div><h2>Your closest shot</h2></div></div>
-      <div class="rise close big-shot">${progressRow(top)}</div>
+      <div class="rise close big-shot">${progressRow(top, false, true)}</div>
     </section>` : ""}
 
     ${listed.length ? `<section class="section">
       <div class="section-head"><div><h2>${earned.length ? "Next plaques" : "Everything else"}</h2><p>Closest first. Pace is your average over the last 3 months.</p></div></div>
-      <div class="rise-list">${shown.map((i) => `<div class="rise ${i.next.pct >= 0.9 ? "close" : ""}">${progressRow(i)}</div>`).join("")}</div>
+      <div class="rise-list">${shown.map((i) => `<div class="rise ${i.next.pct >= 0.9 ? "close" : ""}">${progressRow(i, false, true)}</div>`).join("")}</div>
       ${listed.length > 5 ? `<button class="btn btn-ghost btn-sm more" data-act="more">${view.showAll ? "Show fewer" : `Show all ${listed.length}`}</button>` : ""}
     </section>` : ""}
 
@@ -230,8 +231,10 @@ function renderResults(r: Results, ctx: Ctx) {
     </section>
   </main>${footer()}`;
 
-  app.querySelector<HTMLButtonElement>('[data-act="share"]')?.addEventListener("click", () =>
-    openShare(r, ctx.name, ctx.demo ? "https://wheresmyplaque.com" : location.href));
+  const shareUrl = ctx.demo ? "https://wheresmyplaque.com" : location.href;
+  app.querySelector<HTMLButtonElement>('[data-act="share"]')?.addEventListener("click", () => openShare(r, shareUrl));
+  app.querySelectorAll<HTMLButtonElement>("[data-share-item]").forEach((b) =>
+    b.addEventListener("click", () => openShare(r, shareUrl, { kind: "countdown", itemId: b.dataset.shareItem })));
   app.querySelector<HTMLButtonElement>('[data-act="more"]')?.addEventListener("click", () => { view.showAll = !view.showAll; renderResults(r, ctx); });
 }
 
@@ -290,44 +293,74 @@ async function loadLive(token: string) {
 // Connect modal
 // ---------------------------------------------------------------------------
 let handle: { destroy: () => void } | null = null;
-function closeModal() { handle?.destroy(); handle = null; document.querySelector(".modal")?.remove(); }
+let connectEl: HTMLElement | null = null;
+let tokenCache: { token: string; at: number } | null = null;
+const vidOnce = () => visitorId();
+
+async function mintToken(): Promise<string> {
+  const r = await fetch(fn("session-token"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: vidOnce() }) });
+  if (!r.ok) throw new Error("token");
+  return (await r.json()).token;
+}
+// Warm everything the connect flow needs before the click: SDK code + a session token.
+function prewarm() {
+  if (!LIVE || tokenCache) return;
+  import("@usemogul/connect-js").catch(() => {});
+  mintToken().then((token) => (tokenCache = { token, at: Date.now() })).catch(() => {});
+}
+
+function resumePill(show: boolean) {
+  let pill = document.getElementById("resume-pill");
+  if (!show) return pill?.remove();
+  if (pill) return;
+  pill = document.createElement("div");
+  pill.id = "resume-pill";
+  pill.innerHTML = `<span><i class="live-dot"></i>Connection in progress</span><button class="btn btn-primary btn-sm" data-act="connect">Resume</button><button class="pill-cancel" data-act="cancel-connect">Cancel</button>`;
+  document.body.appendChild(pill);
+}
+function hideConnect() { if (connectEl) { connectEl.hidden = true; resumePill(Boolean(handle)); } }
+function destroyConnect() { handle?.destroy(); handle = null; connectEl?.remove(); connectEl = null; resumePill(false); }
 
 async function openConnect() {
-  closeModal();
+  if (connectEl) { connectEl.hidden = false; resumePill(false); return; } // resume the same live session
   const m = document.createElement("div");
-  m.className = "modal";
+  m.className = "modal connect-modal";
   m.innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-label="Connect your label or distributor">
-    <div class="modal-head"><span>Connect your label or distributor</span><button data-act="close" aria-label="Close">×</button></div>
-    ${LIVE ? `<div id="mogul-connect"></div>` : `<div class="modal-body">
+    <div class="modal-head"><span class="src-line"><img class="wmp-head" src="${wmpIcon}" alt="">Connect your label or distributor</span><button data-act="close" aria-label="Minimize">×</button></div>
+    ${LIVE ? `<div id="mogul-connect" class="loading-embed"><div class="embed-loader"><span class="spinner"></span>Opening secure connection…</div></div>` : `<div class="modal-body">
       <p>Live connections turn on once this page is pointed at the Supabase backend and a Mogul Connect client ID.</p>
       <p>Until then, the sample report runs the exact same math on two years of made-up DistroKid statements.</p>
       <div><a class="btn btn-primary btn-sm" href="#demo" data-act="close">Open the sample report</a></div></div>`}
   </div>`;
   document.body.appendChild(m);
-  m.addEventListener("click", (e) => { if (e.target === m || (e.target as HTMLElement).closest('[data-act="close"]')) closeModal(); });
+  connectEl = m;
+  // Only the × closes it, and even then the session keeps running behind a Resume pill.
+  m.addEventListener("click", (e) => { if ((e.target as HTMLElement).closest('[data-act="close"]')) LIVE ? hideConnect() : destroyConnect(); });
   if (!LIVE) return;
 
-  const vid = visitorId();
+  const vid = vidOnce();
   const { MogulConnect } = await import("@usemogul/connect-js");
+  const container = document.getElementById("mogul-connect")!;
   handle = MogulConnect.create({
     origin: EMBED_ORIGIN,
-    container: document.getElementById("mogul-connect")!,
+    container,
     clientId: CLIENT_ID,
     getToken: async () => {
-      const r = await fetch(fn("session-token"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: vid }) });
-      if (!r.ok) throw new Error("token");
-      return (await r.json()).token;
+      if (tokenCache && Date.now() - tokenCache.at < 4 * 60 * 1000) { const t = tokenCache.token; tokenCache = null; return t; }
+      return mintToken();
     },
+    onReady: () => container.classList.remove("loading-embed"),
     onSuccess: async ({ sourceId, accountId, connectedIdentity }) => {
       const r = await fetch(fn("source-connected"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: vid, sourceId, accountId, connectedIdentity }) });
       const { resultsToken } = await r.json();
-      closeModal();
+      destroyConnect();
       location.hash = `r-${resultsToken}`;
     },
-    onExit: () => closeModal(),
+    onExit: () => destroyConnect(),
     onError: (err) => {
-      const box = document.querySelector(".modal-box");
-      if (box) box.insertAdjacentHTML("beforeend", `<div class="modal-body"><p>That didn't connect (${esc(err.code)}). Check your login and try again.</p></div>`);
+      container.classList.remove("loading-embed");
+      const box = m.querySelector(".modal-box");
+      if (box && !box.querySelector(".connect-err")) box.insertAdjacentHTML("beforeend", `<div class="modal-body connect-err"><p>That didn't connect (${esc(err.code)}). Check your login and try again.</p></div>`);
     },
   });
 }
@@ -338,7 +371,7 @@ async function openConnect() {
 function route() {
   clearTimeout(pollTimer);
   const h = location.hash.replace(/^#/, "");
-  if (h === "demo") renderResults(sampleResults(), { name: "June Harbor", demo: true, target: "DISTROKID" });
+  if (h === "demo") renderResults(sampleResults(), { name: "", demo: true, target: "DISTROKID" });
   else if (h.startsWith("r-")) loadLive(h.slice(2));
   else { renderLanding(); if (h === "rules") document.getElementById("rules")?.scrollIntoView(); }
   if (h !== "rules") window.scrollTo(0, 0);
@@ -348,12 +381,14 @@ document.addEventListener("click", async (e) => {
   const t = (e.target as HTMLElement).closest<HTMLElement>("[data-act]");
   if (!t) return;
   if (t.dataset.act === "connect") openConnect();
+  if (t.dataset.act === "cancel-connect") destroyConnect();
   if (t.dataset.act === "copy") {
     try { await navigator.clipboard.writeText(location.href); t.textContent = "Link copied"; }
     catch { t.textContent = location.href; }
     setTimeout(() => (t.textContent = "Copy link"), 2400);
   }
 });
-document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") document.querySelector(".share-modal")?.remove(); });
 window.addEventListener("hashchange", () => { document.querySelector(".share-modal")?.remove(); route(); });
 route();
+prewarm();

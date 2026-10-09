@@ -21,10 +21,8 @@ function countdownCard(i: CertItem, artist: string) {
   const per = i.type === "album" ? STREAMS_PER_ALBUM_UNIT : STREAMS_PER_SINGLE_UNIT;
   const pct = i.next.pct;
   const C = 2 * Math.PI * 46;
-  const kicker = pct >= 0.9 ? "Almost there" : pct >= 0.5 ? "Halfway up" : "On the way";
   return `<div class="sc sc-count ${medalClass(i.next.level)}">
     <div class="sc-grid"></div><div class="sc-glow"></div>
-    <div class="sc-kicker">${kicker}</div>
     <div class="sc-ring">
       <svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="none" stroke="#1d211f" stroke-width="3.2"/>
       <circle cx="50" cy="50" r="46" fill="none" stroke="var(--tone)" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${(C * (1 - Math.max(0.01, pct))).toFixed(2)}"/></svg>
@@ -32,7 +30,7 @@ function countdownCard(i: CertItem, artist: string) {
       <div class="sc-pct">${pct < 0.01 ? "<1" : pct >= 0.995 ? (pct * 100).toFixed(1) : Math.round(pct * 100)}%</div>
     </div>
     <h2>${fmt(i.next.remaining)} units from <em>${esc(i.next.label)}</em></h2>
-    <div class="sc-song">${esc(i.title)}<small>${esc(artist)}${i.type === "album" ? " · album" : ""}</small></div>
+    <div class="sc-song">${esc(i.title)}<small>${esc(i.artist || artist)}${i.type === "album" ? " · album" : ""}</small></div>
     <div class="sc-facts">
       <div><b>${fmt(i.next.remaining * per)}</b><span>More US streams</span></div>
       <div><b>${eta(i)}</b><span>At current pace</span></div>
@@ -58,7 +56,6 @@ function celebrateCard(r: Results, artist: string) {
     <div><b>${esc(i.title)}</b><small>${esc(i.current.label)} · ${fmt(i.units)} units</small></div></div>`).join("");
   return `<div class="sc sc-cele ${medalClass(top.current.level)}">
     <div class="sc-grid"></div><div class="sc-rays"></div><div class="sc-confetti">${confetti}</div>
-    <div class="sc-kicker">${esc(artist)}</div>
     <h2 class="sc-shout">I went <em>${esc(word)}!</em></h2>
     <div class="sc-hero"><div class="sc-medal xl ${medalClass(top.current.level)}"><span>${medalLabel(top.current.level, top.current.multiplier)}</span></div></div>
     <div class="sc-sub"><b>${esc(top.title)}</b> crossed ${fmt(top.current.threshold)} US units</div>
@@ -81,7 +78,6 @@ function wallCard(r: Results, artist: string) {
   ];
   const inProgress = filling.filter((i) => i.current.level === "none").length;
   return `<div class="sc sc-wall"><div class="sc-grid"></div><div class="sc-glow"></div>
-    <div class="sc-kicker" style="color:var(--green)">Plaque wall</div>
     <div class="who">${esc(artist)}</div>
     <div class="tally"><b>${earned.length} earned</b> · ${inProgress} filling in</div>
     <div class="wall">${slots.join("")}</div>
@@ -97,7 +93,15 @@ const ICONS = {
   linkedin: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.75h4v11H3v-11zm6.5 0h3.8v1.5h.1c.5-1 1.8-1.9 3.7-1.9 4 0 4.7 2.5 4.7 5.8v5.6h-4v-5c0-1.2 0-2.7-1.7-2.7s-1.9 1.3-1.9 2.6v5.1h-4v-11z"/></svg>`,
 };
 
-export function openShare(r: Results, artist: string, shareUrl: string) {
+// Most-streamed artist name in the statements (the account holder's name is often not the artist).
+function primaryArtist(r: Results) {
+  const w = new Map<string, number>();
+  for (const i of [...r.singles, ...r.albums]) if (i.artist) w.set(i.artist, (w.get(i.artist) ?? 0) + i.units);
+  return [...w.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? "";
+}
+
+export function openShare(r: Results, shareUrl: string, opts: { kind?: Kind; itemId?: string } = {}) {
+  const artist = primaryArtist(r);
   const items = [...r.singles, ...r.albums].filter((i) => i.units > 0).sort((a, b) => b.next.pct - a.next.pct);
   const hasEarned = [...r.singles, ...r.albums].some((i) => i.current.level !== "none");
   const kinds: Array<{ k: Kind; label: string }> = [
@@ -105,8 +109,8 @@ export function openShare(r: Results, artist: string, shareUrl: string) {
     ...(items.length ? [{ k: "countdown" as Kind, label: "Countdown" }] : []),
     { k: "wall", label: "Plaque wall" },
   ];
-  let idx = 0;
-  let pick = items[0]?.id;
+  let idx = Math.max(0, kinds.findIndex((k) => k.k === opts.kind));
+  let pick = opts.itemId && items.some((i) => i.id === opts.itemId) ? opts.itemId : items[0]?.id;
   const text = hasEarned ? "Went and checked where my plaque is." : "How close are you to Gold?";
 
   const m = document.createElement("div");
