@@ -1,0 +1,11 @@
+project_id = "ofbljjhdxowzcqwnudje"
+
+# Only the bits this project needs; `supabase init` adds the rest.
+[functions.session-token]
+verify_jwt = false
+[functions.source-connected]
+verify_jwt = false
+[functions.results]
+verify_jwt = false
+[functions.mogul-webhook]
+verify_jwt = false

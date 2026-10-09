@@ -1,0 +1,9 @@
+node_modules/
+web/dist/
+web/dist-demo/
+.env
+.env.local
+supabase/.env
+supabase/.temp/
+.DS_Store
+demo-artifact.html
