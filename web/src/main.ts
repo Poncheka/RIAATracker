@@ -117,7 +117,6 @@ function renderLanding() {
         <p class="fineprint">Read-only. Mogul pulls your statements; we never touch your releases or payouts.</p>
       </div>
       <div class="hero-card" aria-label="Sample progress">
-        <div class="hc-top"><span><span class="live-dot"></span>Sample artist</span><span class="num">thru ${monthName(r.asOf)}</span></div>
         ${preview.map((i) => progressRow(i, true)).join("")}
       </div>
     </section>
@@ -144,137 +143,95 @@ function renderLanding() {
 // ---------------------------------------------------------------------------
 // Results
 // ---------------------------------------------------------------------------
-type View = { tab: "single" | "album"; filter: "all" | Level; showAll: boolean };
-const view: View = { tab: "single", filter: "all", showAll: false };
-
 type Ctx = { name: string; demo: boolean; warnings?: string[]; target?: string };
+const view = { showAll: false };
 
 const demoBanner = (ctx: Ctx) => ctx.demo ? `<div class="demo-banner"><span><b>Sample data.</b> A made-up artist with two years of distributor statements.</span><button class="btn btn-primary btn-sm" data-act="connect">${linkIcon}${CONNECT}</button></div>` : "";
 
-function summaryHead(r: Results, ctx: Ctx, sub: string) {
-  return `<div class="summary-top">
-      <div>
-        <div class="eyebrow src-line">${sourceMark(ctx.target)}${esc(sourceName(ctx.target))} · statements through ${monthName(r.asOf)}</div>
-        <h1>${esc(ctx.name)}</h1>
-        <p class="sub">${sub}</p>
-      </div>
-      <div class="summary-actions">
-        <button class="btn btn-primary btn-sm" data-act="share">Share your progress</button>
-        <button class="btn btn-ghost btn-sm" data-act="copy" id="copy-btn">Copy link</button>
-      </div>
-    </div>`;
-}
-
-function wireCommon(r: Results, ctx: Ctx) {
-  app.querySelector<HTMLButtonElement>('[data-act="share"]')?.addEventListener("click", () =>
-    openShare(r, ctx.name, ctx.demo ? "https://wheresmyplaque.com" : location.href));
-}
-
-// Nothing certified yet: one clear "closest shot", a short list, no tabs or filters.
-function renderSimple(r: Results, ctx: Ctx) {
+// One page for everyone: verdict first, then progress on the top tracks, then the numbers.
+function renderResults(r: Results, ctx: Ctx) {
+  const all = [...r.singles, ...r.albums];
+  const earned = all.filter((i) => i.current.level !== "none").sort((a, b) => b.units - a.units);
   const rise = onTheRise(r);
   const [top, ...rest] = rise;
-  const shown = view.showAll ? rest : rest.slice(0, 4);
+  const listed = earned.length ? rise : rest;
+  const shown = view.showAll ? listed : listed.slice(0, 5);
   const excl = Object.entries(r.excluded.byReason).sort((a, b) => b[1] - a[1]);
+  const exclMax = Math.max(1, ...excl.map(([, v]) => v));
+  const best = earned[0];
+
+  const verdict = best
+    ? `<h1 class="verdict">You made it.</h1><p class="sub">${earned.length === 1 ? `${esc(best.title)} has` : `${earned.length} releases have`} enough US units to apply for ${earned.length === 1 ? esc(best.current.label) : "certification"}.</p>`
+    : top
+      ? `<h1 class="verdict">Not yet.</h1><p class="sub">Nothing's at Gold yet. ${esc(top.title)} is closest, at ${top.next.pct < 0.01 ? "under 1" : Math.round(top.next.pct * 100)}%.</p>`
+      : `<h1 class="verdict">Nothing to count yet.</h1><p class="sub">We didn't find any US streams in your statements.</p>`;
+
   app.innerHTML = `${nav()}
-  <main class="wrap simple">
+  <main class="wrap results">
     ${demoBanner(ctx)}
-    <section class="summary">${summaryHead(r, ctx, top ? "Nothing's at Gold yet. Here's where you stand." : "We didn't find any US streams yet.")}</section>
-    ${top ? `<section class="section">
+    <section class="summary">
+      <div class="summary-top">
+        <div>
+          <div class="eyebrow">${esc(ctx.name)}</div>
+          ${verdict}
+        </div>
+        <div class="summary-actions">
+          <button class="btn btn-primary btn-sm" data-act="share">Share</button>
+          <button class="btn btn-ghost btn-sm" data-act="copy" id="copy-btn">Copy link</button>
+        </div>
+      </div>
+    </section>
+
+    ${earned.length ? `<section class="section">
+      <div class="section-head"><div><h2>Plaques you've earned</h2><p>Enough US units to apply. The RIAA still needs an application and an audit.</p></div></div>
+      <div class="cert-grid">${earned.map((i) => `
+        <div class="cert ${i.current.level}">
+          ${medal(i.current.level, i.current.multiplier)}
+          <b>${esc(i.title)}</b>
+          <span class="lvl">${esc(i.current.label)}${i.type === "album" ? " · album" : ""}</span>
+          <span class="u num">${big(i.units)}<small>units</small></span>
+        </div>`).join("")}</div>
+    </section>` : top ? `<section class="section">
       <div class="section-head"><div><h2>Your closest shot</h2></div></div>
       <div class="rise close big-shot">${progressRow(top)}</div>
     </section>` : ""}
-    ${rest.length ? `<section class="section">
-      <div class="section-head"><div><h2>Everything else</h2></div></div>
-      <div class="rise-list compact">${shown.map((i) => `<div class="rise">${progressRow(i, true)}</div>`).join("")}</div>
-      ${rest.length > 4 ? `<button class="btn btn-ghost btn-sm more" data-act="more">${view.showAll ? "Show fewer" : `Show all ${rest.length}`}</button>` : ""}
+
+    ${listed.length ? `<section class="section">
+      <div class="section-head"><div><h2>${earned.length ? "Next plaques" : "Everything else"}</h2><p>Closest first. Pace is your average over the last 3 months.</p></div></div>
+      <div class="rise-list">${shown.map((i) => `<div class="rise ${i.next.pct >= 0.9 ? "close" : ""}">${progressRow(i)}</div>`).join("")}</div>
+      ${listed.length > 5 ? `<button class="btn btn-ghost btn-sm more" data-act="more">${view.showAll ? "Show fewer" : `Show all ${listed.length}`}</button>` : ""}
     </section>` : ""}
-    <details class="counted">
-      <summary>We counted <b class="num">${big(r.totals.usStreams)}</b> US streams and left out <b class="num">${big(r.totals.excludedQuantity)}</b> plays that RIAA doesn't count.</summary>
-      <div class="panel">${excl.length ? excl.map(([k, v]) => `<div class="xrow"><span>${esc(k)}</span><span class="num">${big(v)}</span></div>`).join("") : "<p>Nothing excluded.</p>"}</div>
-    </details>
-    ${[...r.notes, ...(ctx.warnings ?? [])].map((n) => `<p class="note">${esc(n)}</p>`).join("")}
-  </main>${footer()}`;
-  wireCommon(r, ctx);
-  app.querySelector<HTMLButtonElement>('[data-act="more"]')?.addEventListener("click", () => { view.showAll = !view.showAll; renderSimple(r, ctx); });
-}
 
-function renderResults(r: Results, ctx: Ctx) {
-  if (r.totals.certifiedCount === 0) return renderSimple(r, ctx);
-  const items = view.tab === "single" ? r.singles : r.albums;
-  const certified = items.filter((i) => i.current.level !== "none");
-  const riseAll = onTheRise(r).filter((i) => i.type === view.tab);
-  const counts: Record<string, number> = {
-    all: riseAll.length,
-    gold: riseAll.filter((i) => i.next.level === "gold").length,
-    platinum: riseAll.filter((i) => i.next.level === "platinum" || i.next.level === "multi_platinum").length,
-    diamond: riseAll.filter((i) => i.next.level === "diamond").length,
-  };
-  const rise = view.filter === "all" ? riseAll : onTheRise(r, view.filter).filter((i) => i.type === view.tab);
-  const shown = view.showAll ? rise : rise.slice(0, 6);
-  const excl = Object.entries(r.excluded.byReason).sort((a, b) => b[1] - a[1]);
-  const exclMax = Math.max(1, ...excl.map(([, v]) => v));
-  const closest = riseAll[0];
-
-  app.innerHTML = `${nav()}
-  <main class="wrap">
-    ${demoBanner(ctx)}
-    <section class="summary">
-      ${summaryHead(r, ctx, `${r.totals.certifiedCount} release${r.totals.certifiedCount > 1 ? "s have" : " has"} enough units to apply for certification.`)}
+    <section class="section numbers">
+      <div class="section-head"><div><h2>The numbers</h2><p>From ${esc(sourceName(ctx.target))} statements through ${monthName(r.asOf)}.</p></div></div>
       <div class="stats">
-        <div class="stat"><b class="num g">${r.totals.certifiedCount}</b><small>Eligible now</small></div>
+        <div class="stat"><b class="num g">${earned.length}</b><small>Plaques earned</small></div>
         <div class="stat"><b class="num">${r.totals.trackedCount}</b><small>Songs + albums tracked</small></div>
         <div class="stat"><b class="num">${big(r.totals.usStreams)}</b><small>US streams counted</small></div>
         <div class="stat"><b class="num">${big(r.totals.excludedQuantity)}</b><small>Plays not counted</small></div>
       </div>
-    </section>
-
-    <div class="tabs" role="tablist">
-      <button role="tab" data-tab="single" aria-selected="${view.tab === "single"}">Singles <span class="num">${r.singles.length}</span></button>
-      <button role="tab" data-tab="album" aria-selected="${view.tab === "album"}">Albums <span class="num">${r.albums.length}</span></button>
-    </div>
-
-    <section class="section" style="padding-top:28px">
-      <div class="section-head"><div><h2>Eligible now</h2><p>Enough US units to apply. Certification still needs a label application and audit.</p></div></div>
-      ${certified.length ? `<div class="cert-grid">${certified.map((i) => `
-        <div class="cert ${i.current.level}">
-          ${medal(i.current.level, i.current.multiplier)}
-          <b>${esc(i.title)}</b>
-          <span class="lvl">${esc(i.current.label)}</span>
-          <span class="u num">${big(i.units)}<small>units</small></span>
-        </div>`).join("")}</div>`
-        : `<div class="empty"><b>Nothing at Gold yet.</b> ${view.tab === "album" && !r.albums.length ? "We only treat a release as an album when it has 3 or more tracks." : closest ? `Your closest is ${esc(closest.title)} at ${Math.round(closest.next.pct * 100)}%.` : ""}</div>`}
-    </section>
-
-    <section class="section">
-      <div class="section-head">
-        <div><h2>On the rise</h2><p>Closest to the next level first. Pace is your average over the last 3 months.</p></div>
-        <div class="chips" role="group" aria-label="Filter by next level">
-          ${(["all", "gold", "platinum", "diamond"] as const).map((f) => `<button class="chip" data-filter="${f}" aria-pressed="${view.filter === f}">${f === "all" ? "All" : `→ ${f[0].toUpperCase() + f.slice(1)}`}<span class="ct">${counts[f]}</span></button>`).join("")}
+      <div class="split">
+        <div class="panel">
+          <h3>What we didn't count</h3>
+          <p>These plays show up in your statements but don't count toward RIAA certification.</p>
+          ${excl.length ? excl.map(([k, v]) => `<div class="xrow"><span>${esc(k)}</span><span class="num">${big(v)}</span><div class="bar"><i style="width:${(v / exclMax * 100).toFixed(1)}%"></i></div></div>`).join("") : `<p>Nothing excluded.</p>`}
         </div>
+        ${earned.length ? `<div class="panel cta">
+          <h3>Ready to apply?</h3>
+          <p>The RIAA needs label copy, ISRCs and a US sales summary by DSP before the audit. Mogul already has your statements and can put that package together.</p>
+          <div><a class="btn btn-primary btn-sm" href="https://usemogul.com" target="_blank" rel="noopener">Talk to Mogul</a></div>
+        </div>` : `<div class="panel">
+          <h3>How we count</h3>
+          <p>150 on-demand US streams or 1 paid download = 1 single unit. Gold is 500K units, about 75M US streams. Albums count 1,500 streams per unit.</p>
+          <div><a class="btn btn-ghost btn-sm" href="#rules">Full rules</a></div>
+        </div>`}
       </div>
-      ${shown.length ? `<div class="rise-list">${shown.map((i) => `<div class="rise ${i.next.pct >= 0.9 ? "close" : ""}">${progressRow(i)}</div>`).join("")}</div>` : `<div class="empty">Nothing heading to that level yet.</div>`}
-      ${rise.length > 6 ? `<button class="btn btn-ghost btn-sm more" data-act="more">${view.showAll ? "Show fewer" : `Show all ${rise.length}`}</button>` : ""}
+      ${[...r.notes, ...(ctx.warnings ?? [])].map((n) => `<p class="note">${esc(n)}</p>`).join("")}
     </section>
-
-    <section class="section split">
-      <div class="panel">
-        <h3>What we didn't count</h3>
-        <p>These plays show up in your statements but don't count toward RIAA certification.</p>
-        ${excl.length ? excl.map(([k, v]) => `<div class="xrow"><span>${esc(k)}</span><span class="num">${big(v)}</span><div class="bar"><i style="width:${(v / exclMax * 100).toFixed(1)}%"></i></div></div>`).join("") : `<p>Nothing excluded.</p>`}
-      </div>
-      <div class="panel cta">
-        <h3>Ready to apply?</h3>
-        <p>The RIAA needs label copy, ISRCs and a US sales summary by DSP before the audit. Mogul already has your statements and can put that package together.</p>
-        <div><a class="btn btn-primary btn-sm" href="https://usemogul.com" target="_blank" rel="noopener">Talk to Mogul</a></div>
-      </div>
-    </section>
-    ${[...r.notes, ...(ctx.warnings ?? [])].map((n) => `<p class="note">${esc(n)}</p>`).join("")}
   </main>${footer()}`;
 
-  app.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((b) => b.onclick = () => { view.tab = b.dataset.tab as View["tab"]; view.filter = "all"; view.showAll = false; renderResults(r, ctx); });
-  app.querySelectorAll<HTMLButtonElement>("[data-filter]").forEach((b) => b.onclick = () => { view.filter = b.dataset.filter as View["filter"]; view.showAll = false; renderResults(r, ctx); });
-  wireCommon(r, ctx);
+  app.querySelector<HTMLButtonElement>('[data-act="share"]')?.addEventListener("click", () =>
+    openShare(r, ctx.name, ctx.demo ? "https://wheresmyplaque.com" : location.href));
   app.querySelector<HTMLButtonElement>('[data-act="more"]')?.addEventListener("click", () => { view.showAll = !view.showAll; renderResults(r, ctx); });
 }
 
