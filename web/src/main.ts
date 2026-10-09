@@ -7,7 +7,7 @@ const dk = (cls = "dk-mark") => `<img class="${cls}" src="${dkLogo}" alt="" aria
 const linkIcon = `<svg class="dk-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>`;
 const CONNECT = "Connect label or distributor";
 const shareIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/></svg>`;
-const SOURCE_NAMES: Record<string, string> = { DISTROKID: "DistroKid", CD_BABY: "CD Baby", TUNECORE: "TuneCore", UNITEDMASTERS: "UnitedMasters", AWAL: "AWAL", AMUSE: "Amuse", BELIEVE: "Believe" };
+const SOURCE_NAMES: Record<string, string> = { DISTROKID: "DistroKid", CD_BABY: "CD Baby", TUNECORE: "TuneCore", UNITEDMASTERS: "UnitedMasters", UNITED_MASTERS: "UnitedMasters", TOO_LOST: "Too Lost", TOOLOST: "Too Lost", AWAL: "AWAL", AMUSE: "Amuse", BELIEVE: "Believe" };
 const sourceName = (t?: string) => (t ? SOURCE_NAMES[t] ?? t.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "your distributor");
 const sourceMark = (t?: string) => (t === "DISTROKID" ? dk("dk-inline") : "");
 import { parseDistroKidReport, mergeExcluded, aggregateByStore, type UsageByStore } from "../../supabase/functions/_shared/distrokid.ts";
@@ -360,8 +360,13 @@ async function loadLive(token: string) {
     pollStarted = 0;
     const warnings = [...(src.warnings ?? [])];
     if (src.reports.failed) warnings.push(`${src.reports.failed} of ${src.reports.total} statements couldn't be read, so these numbers may be low. We retry them automatically.`);
+    const noCounts = (src.warnings ?? []).some((w: string) => /Missing required column: (quantity|store)/.test(w));
+    if (data.results.totals.trackedCount === 0 && noCounts) {
+      renderLoading(0, 0, `${esc(sourceName(src.target))}'s statements only show money per song, not how many times it was streamed or bought, so there's nothing to count toward a plaque. If you also release through another distributor, connect that one.`, { eyebrow: "Connected", title: `${esc(sourceName(src.target))} doesn't report stream counts`, actions: `<button class="btn btn-primary" data-act="connect">${linkIcon}Connect another</button><a class="btn btn-ghost" href="#demo">See a sample report</a>` });
+      return;
+    }
     if (src.target && src.target !== "DISTROKID" && data.results.totals.trackedCount === 0) {
-      renderLoading(0, 0, `Right now we can read DistroKid statements. Your ${esc(sourceName(src.target))} connection is saved, so your results will show up here as soon as we add it.`, { eyebrow: "Connected", title: `We can't read ${esc(sourceName(src.target))} statements yet`, actions: `<a class="btn btn-ghost" href="#demo">See a sample report</a>` });
+      renderLoading(0, 0, `We couldn't find any US streams in your ${esc(sourceName(src.target))} statements. Your connection is saved, so if that changes, your results will show up here.`, { eyebrow: "Connected", title: `No US streams found in ${esc(sourceName(src.target))} yet`, actions: `<a class="btn btn-ghost" href="#demo">See a sample report</a>` });
       return;
     }
     if (sawSteps) {

@@ -82,16 +82,18 @@ export function parseDelimited(text: string): string[][] {
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 const HEADER_ALIASES: Record<string, string[]> = {
-  period: ["salemonth", "salesmonth", "salesperiod", "period", "month", "usagemonth", "reportingperiod"],
-  store: ["store", "dsp", "service", "platform", "retailer", "storename"],
-  artist: ["artist", "artistname", "primaryartist"],
-  title: ["title", "songtitle", "tracktitle", "track", "trackname", "song"],
-  album: ["album", "albumtitle", "release", "releasetitle", "releasename", "product"],
-  isrc: ["isrc"],
-  upc: ["upc", "ean", "upcean", "barcode"],
-  quantity: ["quantity", "qty", "units", "streams", "plays", "count"],
-  country: ["countryofsale", "country", "territory", "countrycode", "region"],
-  kind: ["songalbum", "sourcetype", "type", "producttype", "salestype", "configuration", "format"],
+  // Matched after lower-casing and stripping non-alphanumerics. DistroKid first, then
+  // common names from other distributors' exports.
+  period: ["salemonth", "salesmonth", "salesperiod", "period", "month", "usagemonth", "reportingperiod", "transactionmonth", "activityperiod", "statementperiod", "accountingperiod", "consumptionmonth", "salesdate", "saledate", "transactiondate", "usagedate", "date"],
+  store: ["store", "dsp", "service", "platform", "retailer", "storename", "servicename", "platformname", "partner", "partnername", "channel", "shop", "outlet", "provider", "source"],
+  artist: ["artist", "artistname", "primaryartist", "trackartist", "releaseartist", "artists", "displayartist"],
+  title: ["title", "songtitle", "tracktitle", "track", "trackname", "song", "songname", "assetname", "assettitle", "recordingtitle", "productname"],
+  album: ["album", "albumtitle", "release", "releasetitle", "releasename", "product", "producttitle", "albumname"],
+  isrc: ["isrc", "assetisrc", "trackisrc", "isrccode", "recordingisrc"],
+  upc: ["upc", "ean", "upcean", "barcode", "productupc", "releaseupc", "albumupc", "upccode"],
+  quantity: ["quantity", "qty", "units", "streams", "plays", "count", "streamcount", "playcount", "netunits", "netquantity", "quantitysold", "salesquantity", "totalunits", "unitssold", "totalquantity", "consumption"],
+  country: ["countryofsale", "country", "territory", "countrycode", "region", "salecountry", "salescountry", "countryregion", "isocountry", "territorycode", "storecountry", "usercountry", "consumercountry"],
+  kind: ["songalbum", "sourcetype", "type", "producttype", "salestype", "saletype", "transactiontype", "usagetype", "configuration", "format", "assettype", "salescategory", "category"],
 };
 
 function mapHeaders(header: string[]): Record<string, number> {
@@ -108,7 +110,7 @@ function mapHeaders(header: string[]): Record<string, number> {
 // RIAA eligibility rules applied per row
 // ---------------------------------------------------------------------------
 
-const US = new Set(["us", "usa", "unitedstates", "unitedstatesofamerica", "px", "usmilitary"]);
+const US = new Set(["us", "usa", "unitedstates", "unitedstatesofamerica", "px", "usmilitary", "840"]);
 
 // Stores whose rows are UGC, social, fitness or programmed radio. RIAA only
 // counts on-demand streams from label-reported services, and no UGC.
@@ -120,7 +122,7 @@ const EXCLUDED_STORES: Array<[RegExp, string]> = [
   [/sirius|sxm|soundexchange|radio(?!.*all ?access)/i, "Programmed radio"],
 ];
 
-const DOWNLOAD_STORES = /itunes|download|purchase|beatport|7digital|google play store|juno|traxsource|bandcamp/i;
+const DOWNLOAD_STORES = /itunes|download|purchase|beatport|7digital|google play store|juno|traxsource|bandcamp|mp3|digital sales/i;
 const STREAM_STORES =
   /spotify|apple music|amazon|youtube|tidal|deezer|napster|pandora|soundcloud|audiomack|anghami|boomplay|iheart|qobuz|kkbox|joox|jiosaavn|gaana|yandex|vk|zvuk|netease|tencent|line music|awa|claro|trebel|melon|genie|flo/i;
 

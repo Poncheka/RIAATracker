@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseDistroKidReport, classify } from "../supabase/functions/_shared/distrokid.ts";
@@ -69,4 +70,18 @@ test("pace + ETA", () => {
   assert.equal(r.singles[0].units, 300_000);
   assert.equal(r.singles[0].monthlyPace, 50_000);
   assert.equal(r.singles[0].monthsToNext, 4);
+});
+
+test("UnitedMasters monthly statement has no stream counts → clear warning, no rows", () => {
+  const text = readFileSync(new URL("./fixtures/unitedmasters-monthly-header.csv", import.meta.url), "utf8");
+  const p = parseDistroKidReport(text);
+  assert.equal(p.monthly.length, 0);
+  assert.match(p.warnings[0], /Missing required column/);
+});
+
+test("generic distributor headers (Platform / Territory / Units / Track Title)", () => {
+  const csv = "Sales Month,Platform,Territory,Track Title,Track Artist,ISRC,UPC,Units,Sale Type\n2026-03,Spotify,US,Song A,Artist,X1,123,150,Stream\n2026-03,Apple Music,GB,Song A,Artist,X1,123,999,Stream\n";
+  const p = parseDistroKidReport(csv);
+  assert.equal(p.monthly[0].streams, 150);
+  assert.equal(p.excluded.byReason["Outside the US"], 999);
 });
