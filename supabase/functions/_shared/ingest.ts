@@ -1,5 +1,5 @@
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.45.4";
-import { parseDistroKidReport } from "./distrokid.ts";
+import { aggregateByStore, parseDistroKidReport } from "./distrokid.ts";
 import { downloadReport, getSource } from "./mogul.ts";
 
 export const db = (): SupabaseClient =>
@@ -41,6 +41,16 @@ export async function ingestSource(sourceId: number): Promise<{ ingested: number
       }));
       for (let i = 0; i < rows.length; i += 500) {
         const { error } = await sb.from("usage_monthly").upsert(rows.slice(i, i + 500));
+        if (error) throw error;
+      }
+      await sb.from("usage_by_store").delete().eq("report_id", rep.id);
+      const storeRows = aggregateByStore(parsed.rows).map((m) => ({
+        source_id: sourceId, report_id: rep.id, period: m.period, isrc: m.isrc, upc: m.upc, store: m.store,
+        title: m.title, artist: m.artist,
+        streams: Math.round(m.streams), track_downloads: Math.round(m.trackDownloads), album_downloads: Math.round(m.albumDownloads),
+      }));
+      for (let i = 0; i < storeRows.length; i += 500) {
+        const { error } = await sb.from("usage_by_store").upsert(storeRows.slice(i, i + 500));
         if (error) throw error;
       }
       await sb.from("reports").update({

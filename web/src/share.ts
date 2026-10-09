@@ -40,10 +40,13 @@ function countdownCard(i: CertItem, artist: string) {
   </div>`;
 }
 
-function celebrateCard(r: Results, artist: string) {
-  const earned = [...r.singles, ...r.albums].filter((i) => i.current.level !== "none")
-    .sort((a, b) => RANK[b.current.level] - RANK[a.current.level] || b.units - a.units);
-  const top = earned[0];
+const earnedOf = (r: Results) => [...r.singles, ...r.albums].filter((i) => i.current.level !== "none")
+  .sort((a, b) => RANK[b.current.level] - RANK[a.current.level] || b.units - a.units);
+
+function celebrateCard(r: Results, focusId?: string) {
+  const all = earnedOf(r);
+  const top = all.find((i) => i.id === focusId) ?? all[0];
+  const earned = [top, ...all.filter((i) => i !== top)];
   const word = top.current.level === "gold" ? "Gold" : top.current.level === "diamond" ? "Diamond" : top.current.label;
   // deterministic confetti
   let seed = 7; const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
@@ -58,7 +61,7 @@ function celebrateCard(r: Results, artist: string) {
     <div class="sc-grid"></div><div class="sc-rays"></div><div class="sc-confetti">${confetti}</div>
     <h2 class="sc-shout">I went <em>${esc(word)}!</em></h2>
     <div class="sc-hero"><div class="sc-medal xl ${medalClass(top.current.level)}"><span>${medalLabel(top.current.level, top.current.multiplier)}</span></div></div>
-    <div class="sc-sub"><b>${esc(top.title)}</b> crossed ${fmt(top.current.threshold)} US units</div>
+    <div class="sc-sub"><b>${esc(top.title)}</b>${top.type === "album" ? " (album)" : ""} crossed ${fmt(top.current.threshold)} US units</div>
     <div class="sc-list">${list}${earned.length > 4 ? `<div class="sc-more">+${earned.length - 4} more</div>` : ""}</div>
     <div class="sc-fine">Estimate from distributor data. Not an official RIAA certification.</div>
     <div class="sc-foot"><span>wheresmyplaque.com</span><img src="${logoUrl}" alt="Mogul"></div>
@@ -76,10 +79,8 @@ function wallCard(r: Results, artist: string) {
       return `<div class="slot prog"><div class="hole ${i.next.level === "gold" ? "" : "plat"}" style="--p:${p}"><i>${i.next.pct < 0.01 ? "<1" : p}%</i></div><b>${esc(i.title)}${i.type === "album" ? " (album)" : ""}</b><small>→ ${esc(i.next.label.replace("Platinum", "Plat"))}</small></div>`;
     }),
   ];
-  const inProgress = filling.filter((i) => i.current.level === "none").length;
   return `<div class="sc sc-wall"><div class="sc-grid"></div><div class="sc-glow"></div>
     <div class="who">${esc(artist)}</div>
-    <div class="tally"><b>${earned.length} earned</b> · ${inProgress} filling in</div>
     <div class="wall">${slots.join("")}</div>
     <div class="sc-foot"><span>wheresmyplaque.com</span><img src="${logoUrl}" alt="Mogul"></div>
   </div>`;
@@ -110,6 +111,7 @@ export function openShare(r: Results, shareUrl: string, opts: { kind?: Kind; ite
     { k: "wall", label: "Plaque wall" },
   ];
   let idx = Math.max(0, kinds.findIndex((k) => k.k === opts.kind));
+  let cele = opts.kind === "celebrate" && opts.itemId ? opts.itemId : earnedOf(r)[0]?.id;
   let pick = opts.itemId && items.some((i) => i.id === opts.itemId) ? opts.itemId : items[0]?.id;
   const text = hasEarned ? "Went and checked where my plaque is." : "How close are you to Gold?";
 
@@ -124,6 +126,9 @@ export function openShare(r: Results, shareUrl: string, opts: { kind?: Kind; ite
       <button class="arrow" data-step="1" aria-label="Next card" ${kinds.length < 2 ? "hidden" : ""}>›</button>
     </div>
     ${kinds.length > 1 ? `<div class="dots">${kinds.map(() => "<i></i>").join("")}</div>` : ""}
+    <label class="pick" id="cele-pick-wrap" hidden>Release
+      <select id="cele-pick">${earnedOf(r).map((i) => `<option value="${esc(i.id)}">${esc(i.title)}${i.type === "album" ? " (album)" : ""} · ${esc(i.current.label)}</option>`).join("")}</select>
+    </label>
     <label class="pick" id="share-pick-wrap" hidden>Song
       <select id="share-pick">${items.slice(0, 40).map((i) => `<option value="${esc(i.id)}">${esc(i.title)}${i.type === "album" ? " (album)" : ""} · ${i.next.pct < 0.01 ? "<1" : Math.round(i.next.pct * 100)}% to ${esc(i.next.label)}</option>`).join("")}</select>
     </label>
@@ -150,15 +155,17 @@ export function openShare(r: Results, shareUrl: string, opts: { kind?: Kind; ite
   const render = () => {
     const k = kinds[idx].k;
     const item = items.find((i) => i.id === pick) ?? items[0];
-    $("#share-card").innerHTML = k === "celebrate" ? celebrateCard(r, artist) : k === "countdown" && item ? countdownCard(item, artist) : wallCard(r, artist);
+    $("#share-card").innerHTML = k === "celebrate" ? celebrateCard(r, cele) : k === "countdown" && item ? countdownCard(item, artist) : wallCard(r, artist);
     m.querySelectorAll(".seg button").forEach((b, i) => b.setAttribute("aria-selected", String(i === idx)));
     m.querySelectorAll(".dots i").forEach((d, i) => d.classList.toggle("on", i === idx));
     $("#share-pick-wrap").hidden = k !== "countdown";
+    $("#cele-pick-wrap").hidden = k !== "celebrate" || earnedOf(r).length < 2;
     status("");
   };
   const go = (n: number) => { idx = (idx + n + kinds.length) % kinds.length; render(); };
   render();
   ($("#share-pick") as unknown as HTMLSelectElement).value = pick ?? "";
+  ($("#cele-pick") as unknown as HTMLSelectElement).value = cele ?? "";
 
   const png = () => toPng($(".sc"), { width: 1080, height: 1920, pixelRatio: 1, cacheBust: true });
   const fname = () => `wheresmyplaque-${kinds[idx].k}.png`;
@@ -195,7 +202,7 @@ export function openShare(r: Results, shareUrl: string, opts: { kind?: Kind; ite
       : `https://www.linkedin.com/sharing/share-offsite/?url=${u}`;
     window.open(href, "_blank", "noopener,width=640,height=640");
   });
-  m.addEventListener("change", (e) => { const s = e.target as HTMLSelectElement; if (s.id === "share-pick") { pick = s.value; render(); } });
+  m.addEventListener("change", (e) => { const s = e.target as HTMLSelectElement; if (s.id === "share-pick") { pick = s.value; render(); } if (s.id === "cele-pick") { cele = s.value; render(); } });
   let tx0: number | null = null;
   const pv = $(".share-preview");
   pv.addEventListener("touchstart", (e) => (tx0 = e.touches[0].clientX), { passive: true });

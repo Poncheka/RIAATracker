@@ -9,3 +9,5 @@ verify_jwt = false
 verify_jwt = false
 [functions.mogul-webhook]
 verify_jwt = false
+[functions.riaa-package]
+verify_jwt = false

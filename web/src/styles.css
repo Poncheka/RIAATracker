@@ -372,3 +372,32 @@ footer p { margin: 0; max-width: 52em; }
 .wmp-head { width: 26px; height: 26px; flex: none; }
 .modal[hidden] { display: none; }
 .share-modal { z-index: 40; }
+
+/* connect modal ~25% smaller */
+.connect-modal .modal-box { width: min(400px, 100%); }
+.connect-modal #mogul-connect { height: min(500px, 70vh); }
+/* cert card download menu */
+.cert { position: relative; }
+.cert-dl { position: relative; margin-top: 12px; }
+.dl-btn { background: transparent; border: 1px solid var(--line-2); color: var(--fg-2); border-radius: 999px; padding: 7px 14px; font: 500 13px/1 var(--font-body); cursor: pointer; }
+.dl-btn:hover { color: var(--fg); border-color: var(--green); }
+.dl-menu { position: absolute; z-index: 10; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); width: 260px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 12px; padding: 6px; box-shadow: 0 20px 40px -10px rgba(0,0,0,.8); text-align: left; }
+.dl-menu[hidden] { display: none; }
+.dl-menu button { display: grid; gap: 2px; width: 100%; background: none; border: 0; text-align: left; padding: 10px 12px; border-radius: 8px; cursor: pointer; color: var(--fg); }
+.dl-menu button:hover { background: var(--surface); }
+.dl-menu b { font: 600 14px/1.2 var(--font-display); }
+.dl-menu small { font-size: 12px; color: var(--fg-2); }
+
+/* step progress */
+.steps h1 { margin-bottom: 8px; }
+.step-list { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 14px; }
+.step-list li { display: flex; gap: 14px; align-items: flex-start; color: var(--fg-3); font-size: 16px; transition: color .3s; }
+.step-list li.active { color: var(--fg); }
+.step-list li.done { color: var(--fg-2); }
+.step-list .dot { width: 24px; height: 24px; border-radius: 50%; flex: none; display: grid; place-items: center; border: 1.5px solid var(--line-2); font-size: 13px; color: var(--green-ink); }
+.step-list li.done .dot { background: var(--green); border-color: var(--green); }
+.step-list li.active .dot { border-color: transparent; }
+.step-list small { display: block; color: var(--fg-2); font-size: 13px; margin-top: 3px; }
+.spinner.sm { width: 22px; height: 22px; border-width: 2.5px; }
+.keep-open { margin-top: 18px !important; color: var(--fg-2); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+.keep-open b { color: var(--fg); }

@@ -229,3 +229,24 @@ export function mergeExcluded(list: ExcludedSummary[]): ExcludedSummary {
   }
   return out;
 }
+
+/** US, RIAA-eligible usage per month × ISRC × UPC × store. Feeds the RIAA package. */
+export interface UsageByStore {
+  period: string; isrc: string; upc: string; title: string; artist: string; store: string;
+  streams: number; trackDownloads: number; albumDownloads: number;
+}
+
+export function aggregateByStore(rows: UsageRow[]): UsageByStore[] {
+  const map = new Map<string, UsageByStore>();
+  for (const r of rows) {
+    if (r.kind === "excluded") continue;
+    const isrc = r.kind === "album_download" ? "" : r.isrc || `T:${norm(r.artist)}:${norm(r.title)}`;
+    const key = `${r.period}|${isrc}|${r.upc}|${r.store}`;
+    let m = map.get(key);
+    if (!m) map.set(key, (m = { period: r.period, isrc, upc: r.upc, title: r.title, artist: r.artist, store: r.store, streams: 0, trackDownloads: 0, albumDownloads: 0 }));
+    if (r.kind === "stream") m.streams += r.quantity;
+    else if (r.kind === "track_download") m.trackDownloads += r.quantity;
+    else m.albumDownloads += r.quantity;
+  }
+  return [...map.values()];
+}
