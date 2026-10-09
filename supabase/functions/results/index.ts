@@ -1,5 +1,5 @@
 // GET ?token=<results_token> → { source, results }
-import { cors, db, json } from "../_shared/ingest.ts";
+import { background, cors, db, ingestSource, json } from "../_shared/ingest.ts";
 import { computeCertifications } from "../_shared/riaa.ts";
 import { mergeExcluded, type ExcludedSummary, type UsageMonthly } from "../_shared/distrokid.ts";
 
@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
   if (!/^[0-9a-f-]{36}$/i.test(token)) return json({ error: "token required" }, 400);
 
   const sb = db();
-  const { data: src } = await sb.from("sources").select("id, identity, sync_status, last_sync, target").eq("results_token", token).maybeSingle();
+  const { data: src } = await sb.from("sources").select("id, identity, sync_status, last_sync, target, last_ingested_at").eq("results_token", token).maybeSingle();
   if (!src) return json({ error: "Not found" }, 404);
 
   const { data: reports } = await sb.from("reports").select("status, excluded, warnings").eq("source_id", src.id);
@@ -26,6 +26,16 @@ Deno.serve(async (req) => {
     if (!data || data.length < 1000) break;
   }
 
+  // Self-heal: if we're still waiting, re-check Mogul ourselves (at most every 20s)
+  // instead of relying only on the webhook. Also retries failed reports.
+  const pendingOrFailed = (reports ?? []).some((r) => r.status !== "ingested");
+  const waiting = !reports?.length || pendingOrFailed || src.sync_status === "IN_PROGRESS" || !src.sync_status;
+  const stale = !src.last_ingested_at || Date.now() - new Date(src.last_ingested_at).getTime() > 20_000;
+  if (waiting && stale) {
+    await sb.from("sources").update({ last_ingested_at: new Date().toISOString() }).eq("id", src.id);
+    background(ingestSource(src.id));
+  }
+
   const excluded = mergeExcluded((reports ?? []).map((r) => r.excluded as ExcludedSummary).filter(Boolean));
   const total = reports?.length ?? 0;
   const done = reports?.filter((r) => r.status === "ingested").length ?? 0;
@@ -35,7 +45,11 @@ Deno.serve(async (req) => {
     source: {
       target: src.target, identity: src.identity, syncStatus: src.sync_status, lastSync: src.last_sync,
       reports: { total, ingested: done, failed },
-      ready: total > 0 && done + failed === total,
+      // ready once Mogul finished syncing and every report has been processed
+      ready: src.sync_status !== "IN_PROGRESS" && !!src.sync_status && done + failed === total &&
+        (total > 0 || src.sync_status === "SUCCESS"),
+      needsReconnect: ["REAUTHENTICATE_REQUIRED", "USER_ACTION_REQUIRED"].includes(src.sync_status ?? ""),
+      syncError: src.sync_status === "UNEXPECTED_ERROR",
       warnings: [...new Set((reports ?? []).flatMap((r) => r.warnings ?? []))],
     },
     results: computeCertifications(usage, excluded),

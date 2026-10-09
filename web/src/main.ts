@@ -1,5 +1,8 @@
 import "./styles.css";
 import logoUrl from "./mogul-logo.svg";
+import { openShare } from "./share.ts";
+import dkLogo from "./distrokid.png";
+const dk = (cls = "dk-mark") => `<img class="${cls}" src="${dkLogo}" alt="" aria-hidden="true">`;
 import { parseDistroKidReport, mergeExcluded } from "../../supabase/functions/_shared/distrokid.ts";
 import {
   computeCertifications, onTheRise, formatUnits as fmt,
@@ -60,7 +63,7 @@ function sampleResults(): Results {
 // ---------------------------------------------------------------------------
 function nav() {
   return `<nav class="nav wrap">
-    <a class="brand" href="#" aria-label="Gold Tracker home"><img src="${logoUrl}" alt="Mogul" /><span>Gold Tracker</span></a>
+    <a class="brand" href="#" aria-label="Where's My Plaque home"><img src="${logoUrl}" alt="Mogul" /><span>Where's My Plaque?</span></a>
     <div class="nav-links">
       <a class="hide-sm" href="#rules">How it's counted</a>
       <a href="#demo">Sample report</a>
@@ -104,7 +107,7 @@ function renderLanding() {
         <h1>How close are you to <em>Gold?</em></h1>
         <p class="lede">Connect your DistroKid account and see every song and album's distance to Gold, Platinum and Diamond, counted the way the RIAA counts it: US streams and downloads only.</p>
         <div class="cta-row">
-          <button class="btn btn-primary" data-act="connect"><span class="dk-mark">dk</span>Connect DistroKid</button>
+          <button class="btn btn-primary" data-act="connect">${dk()}Connect DistroKid</button>
           <a class="btn btn-ghost" href="#demo">See a sample report</a>
         </div>
         <p class="fineprint">Read-only. Mogul pulls your statements; we never touch your releases or payouts.</p>
@@ -158,15 +161,16 @@ function renderResults(r: Results, ctx: { name: string; demo: boolean; warnings?
 
   app.innerHTML = `${nav()}
   <main class="wrap">
-    ${ctx.demo ? `<div class="demo-banner"><span><b>Sample data.</b> A made-up artist with two years of DistroKid statements.</span><button class="btn btn-primary btn-sm" data-act="connect">Connect your DistroKid</button></div>` : ""}
+    ${ctx.demo ? `<div class="demo-banner"><span><b>Sample data.</b> A made-up artist with two years of DistroKid statements.</span><button class="btn btn-primary btn-sm" data-act="connect">${dk()}Connect your DistroKid</button></div>` : ""}
     <section class="summary">
       <div class="summary-top">
         <div>
-          <div class="eyebrow">DistroKid · statements through ${monthName(r.asOf)}</div>
+          <div class="eyebrow src-line">${dk("dk-inline")}DistroKid · statements through ${monthName(r.asOf)}</div>
           <h1>${esc(ctx.name)}</h1>
           <p class="sub">${r.totals.certifiedCount ? `${r.totals.certifiedCount} release${r.totals.certifiedCount > 1 ? "s have" : " has"} enough units to apply for certification.` : closest ? `Closest to the next plaque: ${esc(closest.title)}, ${Math.round(closest.next.pct * 100)}% of the way to ${closest.next.label}.` : "No US streams found yet."}</p>
         </div>
         <div class="summary-actions">
+          <button class="btn btn-primary btn-sm" data-act="share">Share your progress</button>
           <button class="btn btn-ghost btn-sm" data-act="copy" id="copy-btn">Copy link</button>
         </div>
       </div>
@@ -223,37 +227,55 @@ function renderResults(r: Results, ctx: { name: string; demo: boolean; warnings?
 
   app.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((b) => b.onclick = () => { view.tab = b.dataset.tab as View["tab"]; view.filter = "all"; view.showAll = false; renderResults(r, ctx); });
   app.querySelectorAll<HTMLButtonElement>("[data-filter]").forEach((b) => b.onclick = () => { view.filter = b.dataset.filter as View["filter"]; view.showAll = false; renderResults(r, ctx); });
+  app.querySelector<HTMLButtonElement>('[data-act="share"]')?.addEventListener("click", () =>
+    openShare(r, ctx.name, ctx.demo ? "https://wheresmyplaque.com" : location.href));
   app.querySelector<HTMLButtonElement>('[data-act="more"]')?.addEventListener("click", () => { view.showAll = !view.showAll; renderResults(r, ctx); });
 }
 
-function renderLoading(done: number, total: number, msg?: string) {
+function renderLoading(done: number, total: number, msg?: string, opts: { title?: string; eyebrow?: string; actions?: string } = {}) {
   const pct = total ? done / total : 0.05;
   app.innerHTML = `${nav()}<main class="wrap"><section class="loading">
-    <div class="eyebrow">Connected</div>
-    <h1>Reading your statements</h1>
-    <p>${msg ?? (total ? `${done} of ${total} monthly statements processed.` : "Waiting for DistroKid to finish syncing. This usually takes a minute or two.")}</p>
-    <div class="bar"><i style="width:${Math.max(4, pct * 100)}%"></i></div>
-    <p class="note">You can leave this page. Bookmark it and the results will be here.</p>
+    <div class="eyebrow">${opts.eyebrow ?? "Connected"}</div>
+    <h1>${opts.title ?? "Reading your statements"}</h1>
+    <p>${msg ?? (total ? `${done} of ${total} statements processed.` : "Waiting for DistroKid to finish syncing. This usually takes a few minutes.")}</p>
+    ${opts.actions ? `<div class="cta-row">${opts.actions}</div>` : `<div class="bar"><i style="width:${Math.max(4, pct * 100)}%"></i></div>
+    <p class="note">You can leave this page. Bookmark it and the results will be here.</p>`}
   </section></main>${footer()}`;
 }
 
 let pollTimer: number | undefined;
+let pollStarted = 0;
 async function loadLive(token: string) {
   clearTimeout(pollTimer);
+  if (!pollStarted) pollStarted = Date.now();
+  const again = (ms: number) => (pollTimer = window.setTimeout(() => loadLive(token), ms));
+  const reconnect = `<button class="btn btn-primary" data-act="connect">${dk()}Reconnect DistroKid</button>`;
   try {
     const res = await fetch(`${fn("results")}?token=${encodeURIComponent(token)}`);
-    if (res.status === 404) { renderLoading(0, 0, "We couldn't find that report. Connect again to start over."); return; }
+    if (res.status === 404) { renderLoading(0, 0, "That results link doesn't match a connection. Connect again to start fresh.", { eyebrow: "Not found", title: "We can't find this report", actions: reconnect }); return; }
     const data = await res.json();
-    const name = data.source?.identity?.name || data.source?.identity?.accounts?.[0]?.name || "Your catalog";
-    if (!data.source.ready) {
-      renderLoading(data.source.reports.ingested, data.source.reports.total);
-      pollTimer = window.setTimeout(() => loadLive(token), 4000);
+    const src = data.source;
+    const name = src?.identity?.name || src?.identity?.accounts?.[0]?.name || "Your catalog";
+    if (src.needsReconnect) {
+      renderLoading(0, 0, "DistroKid asked for your login again (a password change or a security check). Reconnect and we'll pick up where we left off.", { eyebrow: "Action needed", title: "DistroKid needs you to sign in again", actions: reconnect });
       return;
     }
-    renderResults(data.results, { name, demo: false, warnings: data.source.warnings });
+    if (src.syncError) {
+      renderLoading(0, 0, "Mogul hit an error pulling your statements. We'll keep retrying in the background, or you can reconnect now.", { eyebrow: "Sync problem", title: "Something went wrong on our end", actions: reconnect });
+      again(30000); return;
+    }
+    if (!src.ready) {
+      const slow = Date.now() - pollStarted > 10 * 60 * 1000;
+      renderLoading(src.reports.ingested, src.reports.total, slow ? "This is taking longer than usual. Big catalogs can take up to an hour. Leave this page open or bookmark it and check back." : undefined);
+      again(slow ? 15000 : 4000); return;
+    }
+    pollStarted = 0;
+    const warnings = [...(src.warnings ?? [])];
+    if (src.reports.failed) warnings.push(`${src.reports.failed} of ${src.reports.total} statements couldn't be read, so these numbers may be low. We retry them automatically.`);
+    renderResults(data.results, { name, demo: false, warnings });
   } catch {
     renderLoading(0, 0, "Lost the connection to our server. Retrying…");
-    pollTimer = window.setTimeout(() => loadLive(token), 6000);
+    again(6000);
   }
 }
 
@@ -268,7 +290,7 @@ async function openConnect() {
   const m = document.createElement("div");
   m.className = "modal";
   m.innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-label="Connect DistroKid">
-    <div class="modal-head"><span>Connect DistroKid</span><button data-act="close" aria-label="Close">×</button></div>
+    <div class="modal-head"><span class="src-line">${dk("dk-inline")}Connect DistroKid</span><button data-act="close" aria-label="Close">×</button></div>
     ${LIVE ? `<div id="mogul-connect"></div>` : `<div class="modal-body">
       <p>Live connections turn on once this page is pointed at the Supabase backend and a Mogul Connect client ID.</p>
       <p>Until then, the sample report runs the exact same math on two years of made-up DistroKid statements.</p>
@@ -327,5 +349,5 @@ document.addEventListener("click", async (e) => {
   }
 });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
-window.addEventListener("hashchange", route);
+window.addEventListener("hashchange", () => { document.querySelector(".share-modal")?.remove(); route(); });
 route();

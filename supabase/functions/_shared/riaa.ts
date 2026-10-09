@@ -104,11 +104,12 @@ const fmt = (n: number) =>
 
 function headline(item: Pick<CertItem, "next" | "monthsToNext" | "monthlyPace" | "current">): string {
   const { next, monthsToNext } = item;
-  if (monthsToNext === null) return `${fmt(next.remaining)} units to ${next.label}. No US activity in the last 3 months.`;
+  if (monthsToNext === null) return `No US activity in the last 3 months.`;
   if (next.pct >= 0.97 || monthsToNext <= 1) return `${next.label} could land this month.`;
   if (monthsToNext <= 6) return `${next.label} is about ${monthsToNext} months out at this pace.`;
   if (monthsToNext <= 24) return `Roughly ${monthsToNext} months to ${next.label} at your current pace.`;
-  return `${next.label} is ${Math.floor(monthsToNext / 12)}+ years out at this pace.`;
+  if (monthsToNext <= 120) return `${next.label} is ${Math.floor(monthsToNext / 12)}+ years out at this pace.`;
+  return `Long road to ${next.label} at this pace. One playlist or sync can change that.`;
 }
 
 function finish(

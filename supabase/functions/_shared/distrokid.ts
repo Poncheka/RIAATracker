@@ -91,7 +91,7 @@ const HEADER_ALIASES: Record<string, string[]> = {
   upc: ["upc", "ean", "upcean", "barcode"],
   quantity: ["quantity", "qty", "units", "streams", "plays", "count"],
   country: ["countryofsale", "country", "territory", "countrycode", "region"],
-  kind: ["songalbum", "type", "producttype", "salestype", "configuration", "format"],
+  kind: ["songalbum", "sourcetype", "type", "producttype", "salestype", "configuration", "format"],
 };
 
 function mapHeaders(header: string[]): Record<string, number> {
@@ -115,7 +115,8 @@ const US = new Set(["us", "usa", "unitedstates", "unitedstatesofamerica", "px", 
 const EXCLUDED_STORES: Array<[RegExp, string]> = [
   [/tik ?tok|capcut|resso|triller|snap|instagram|facebook|\bmeta\b|social/i, "Social / UGC"],
   [/content ?id|ugc|shorts|youtube \(ugc\)/i, "Social / UGC"],
-  [/peloton|fitness|roblox|twitch|game/i, "Fitness / gaming"],
+  [/peloton|fitness|roblox|twitch|game|\bluna\b/i, "Fitness / gaming"],
+  [/itunes match|locker/i, "Cloud locker"],
   [/sirius|sxm|soundexchange|radio(?!.*all ?access)/i, "Programmed radio"],
 ];
 
