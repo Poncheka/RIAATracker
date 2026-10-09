@@ -1,33 +1,47 @@
 // Mogul → us. Svix-signed. Handles source.created / source.updated / source.deleted.
+// Accepts both header styles Svix can send (svix-* and webhook-*), and logs
+// every delivery attempt to public.webhook_events for debugging.
 import { Webhook } from "npm:svix@1.37.0";
 import { background, db, ingestSource } from "../_shared/ingest.ts";
 
 Deno.serve(async (req) => {
   const payload = await req.text();
-  let evt: { type?: string; event?: string; data?: Record<string, unknown> } & Record<string, unknown>;
+  const h = (k: string) => req.headers.get(`svix-${k}`) ?? req.headers.get(`webhook-${k}`) ?? "";
+  const sb = db();
+  const log = (row: Record<string, unknown>) =>
+    sb.from("webhook_events").insert({
+      msg_id: h("id") || null,
+      headers: Object.fromEntries([...req.headers].filter(([k]) => /^(svix|webhook)-|user-agent|content-type/.test(k) && !k.endsWith("signature"))),
+      body: payload.slice(0, 4000),
+      ...row,
+    });
+
+  // deno-lint-ignore no-explicit-any
+  let evt: any;
   try {
-    evt = new Webhook(Deno.env.get("MOGUL_WEBHOOK_SECRET")!).verify(payload, {
-      "svix-id": req.headers.get("svix-id") ?? "",
-      "svix-timestamp": req.headers.get("svix-timestamp") ?? "",
-      "svix-signature": req.headers.get("svix-signature") ?? "",
-    }) as typeof evt;
-  } catch {
+    evt = new Webhook(Deno.env.get("MOGUL_WEBHOOK_SECRET") ?? "").verify(payload, {
+      "svix-id": h("id"), "svix-timestamp": h("timestamp"), "svix-signature": h("signature"),
+    });
+  } catch (e) {
+    await log({ outcome: "bad_signature", detail: String(e).slice(0, 300) });
     return new Response("Invalid signature", { status: 401 });
   }
 
-  const type = String(evt.type ?? evt.event ?? "");
-  const data = (evt.data ?? evt) as { id?: number };
-  const sourceId = Number(data.id);
-  if (!sourceId) return new Response("ok");
+  try {
+    const type = String(evt.type ?? evt.event ?? evt.eventType ?? "");
+    const data = evt.data ?? evt.payload ?? evt;
+    const sourceId = Number(data?.id ?? data?.sourceId);
+    if (!sourceId) { await log({ outcome: "error", event_type: type, detail: "no source id in payload" }); return new Response("ok"); }
 
-  const sb = db();
-  const { data: known } = await sb.from("sources").select("id").eq("id", sourceId).maybeSingle();
+    const { data: known } = await sb.from("sources").select("id").eq("id", sourceId).maybeSingle();
+    if (!known) { await log({ outcome: "unknown_source", event_type: type, source_id: sourceId }); return new Response("ok"); }
 
-  if (type === "source.deleted") {
-    if (known) await sb.from("sources").delete().eq("id", sourceId);
-  } else if (known) {
-    // source.created arrives before the browser posts onSuccess; source-connected handles that case.
-    background(ingestSource(sourceId));
+    if (type === "source.deleted") await sb.from("sources").delete().eq("id", sourceId);
+    else background(ingestSource(sourceId));
+    await log({ outcome: "ok", event_type: type, source_id: sourceId });
+    return new Response("ok");
+  } catch (e) {
+    await log({ outcome: "error", detail: String(e).slice(0, 300) });
+    return new Response("error", { status: 500 });
   }
-  return new Response("ok");
 });

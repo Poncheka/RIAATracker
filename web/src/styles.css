@@ -288,3 +288,19 @@ footer p { margin: 0; max-width: 52em; }
 .sc-more { font: 500 32px/1 var(--font-mono); color: var(--fg-3); padding-left: 8px; }
 .sc-fine { margin-top: auto; font: 400 28px/1.4 var(--font-body); color: var(--fg-3); }
 .sc-cele .sc-foot { margin-top: 28px; }
+
+/* ---------- simple results (nothing certified yet) ---------- */
+.simple .summary { gap: 0; }
+.big-shot { padding: 28px; }
+.big-shot .prog-title b { font-size: 22px; }
+.big-shot .prog-left b { font-size: 30px; }
+.big-shot .bar { height: 12px; }
+.rise-list.compact { gap: 8px; }
+.rise-list.compact .rise { padding: 14px 18px; }
+.counted { margin-top: 36px; color: var(--fg-2); font-size: 14px; }
+.counted summary { cursor: pointer; list-style: none; padding: 14px 0; border-top: 1px solid var(--line); }
+.counted summary::-webkit-details-marker { display: none; }
+.counted summary::after { content: " Details"; color: var(--green); }
+.counted[open] summary::after { content: " Hide"; }
+.counted b { color: var(--fg); font-weight: 500; }
+.counted .panel { margin-top: 4px; gap: 8px; }

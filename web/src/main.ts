@@ -3,6 +3,11 @@ import logoUrl from "./mogul-logo.svg";
 import { openShare } from "./share.ts";
 import dkLogo from "./distrokid.png";
 const dk = (cls = "dk-mark") => `<img class="${cls}" src="${dkLogo}" alt="" aria-hidden="true">`;
+const linkIcon = `<svg class="dk-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>`;
+const CONNECT = "Connect label or distributor";
+const SOURCE_NAMES: Record<string, string> = { DISTROKID: "DistroKid", CD_BABY: "CD Baby", TUNECORE: "TuneCore", UNITEDMASTERS: "UnitedMasters", AWAL: "AWAL", AMUSE: "Amuse", BELIEVE: "Believe" };
+const sourceName = (t?: string) => (t ? SOURCE_NAMES[t] ?? t.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "your distributor");
+const sourceMark = (t?: string) => (t === "DISTROKID" ? dk("dk-inline") : "");
 import { parseDistroKidReport, mergeExcluded } from "../../supabase/functions/_shared/distrokid.ts";
 import {
   computeCertifications, onTheRise, formatUnits as fmt,
@@ -103,11 +108,10 @@ function renderLanding() {
   <main>
     <section class="hero wrap">
       <div>
-        <div class="eyebrow">RIAA certification tracker</div>
         <h1>How close are you to <em>Gold?</em></h1>
-        <p class="lede">Connect your DistroKid account and see every song and album's distance to Gold, Platinum and Diamond, counted the way the RIAA counts it: US streams and downloads only.</p>
+        <p class="lede">Connect your label or distributor and see every song and album's distance to Gold, Platinum and Diamond, counted the way the RIAA counts it: US streams and downloads only.</p>
         <div class="cta-row">
-          <button class="btn btn-primary" data-act="connect">${dk()}Connect DistroKid</button>
+          <button class="btn btn-primary" data-act="connect">${linkIcon}${CONNECT}</button>
           <a class="btn btn-ghost" href="#demo">See a sample report</a>
         </div>
         <p class="fineprint">Read-only. Mogul pulls your statements; we never touch your releases or payouts.</p>
@@ -120,7 +124,7 @@ function renderLanding() {
 
     <section class="rules wrap" id="rules">
       <h2>How we count</h2>
-      <p>Straight from the RIAA's Digital Single and Album audit requirements. We read your monthly DistroKid statements, keep only what an auditor would, and add it up.</p>
+      <p>Straight from the RIAA's Digital Single and Album audit requirements. We read your royalty statements, keep only what an auditor would, and add it up.</p>
       <div class="rule-grid">
         <div class="rule"><div class="big num">150 <small>streams</small></div><p>= 1 single unit. So do 1 paid download. Gold single = 75M on-demand US streams.</p></div>
         <div class="rule"><div class="big num">1,500 <small>streams</small></div><p>= 1 album unit, as do 10 track downloads or 1 album download. Every track on the album counts, including the singles you put out first.</p></div>
@@ -143,7 +147,60 @@ function renderLanding() {
 type View = { tab: "single" | "album"; filter: "all" | Level; showAll: boolean };
 const view: View = { tab: "single", filter: "all", showAll: false };
 
-function renderResults(r: Results, ctx: { name: string; demo: boolean; warnings?: string[] }) {
+type Ctx = { name: string; demo: boolean; warnings?: string[]; target?: string };
+
+const demoBanner = (ctx: Ctx) => ctx.demo ? `<div class="demo-banner"><span><b>Sample data.</b> A made-up artist with two years of distributor statements.</span><button class="btn btn-primary btn-sm" data-act="connect">${linkIcon}${CONNECT}</button></div>` : "";
+
+function summaryHead(r: Results, ctx: Ctx, sub: string) {
+  return `<div class="summary-top">
+      <div>
+        <div class="eyebrow src-line">${sourceMark(ctx.target)}${esc(sourceName(ctx.target))} · statements through ${monthName(r.asOf)}</div>
+        <h1>${esc(ctx.name)}</h1>
+        <p class="sub">${sub}</p>
+      </div>
+      <div class="summary-actions">
+        <button class="btn btn-primary btn-sm" data-act="share">Share your progress</button>
+        <button class="btn btn-ghost btn-sm" data-act="copy" id="copy-btn">Copy link</button>
+      </div>
+    </div>`;
+}
+
+function wireCommon(r: Results, ctx: Ctx) {
+  app.querySelector<HTMLButtonElement>('[data-act="share"]')?.addEventListener("click", () =>
+    openShare(r, ctx.name, ctx.demo ? "https://wheresmyplaque.com" : location.href));
+}
+
+// Nothing certified yet: one clear "closest shot", a short list, no tabs or filters.
+function renderSimple(r: Results, ctx: Ctx) {
+  const rise = onTheRise(r);
+  const [top, ...rest] = rise;
+  const shown = view.showAll ? rest : rest.slice(0, 4);
+  const excl = Object.entries(r.excluded.byReason).sort((a, b) => b[1] - a[1]);
+  app.innerHTML = `${nav()}
+  <main class="wrap simple">
+    ${demoBanner(ctx)}
+    <section class="summary">${summaryHead(r, ctx, top ? "Nothing's at Gold yet. Here's where you stand." : "We didn't find any US streams yet.")}</section>
+    ${top ? `<section class="section">
+      <div class="section-head"><div><h2>Your closest shot</h2></div></div>
+      <div class="rise close big-shot">${progressRow(top)}</div>
+    </section>` : ""}
+    ${rest.length ? `<section class="section">
+      <div class="section-head"><div><h2>Everything else</h2></div></div>
+      <div class="rise-list compact">${shown.map((i) => `<div class="rise">${progressRow(i, true)}</div>`).join("")}</div>
+      ${rest.length > 4 ? `<button class="btn btn-ghost btn-sm more" data-act="more">${view.showAll ? "Show fewer" : `Show all ${rest.length}`}</button>` : ""}
+    </section>` : ""}
+    <details class="counted">
+      <summary>We counted <b class="num">${big(r.totals.usStreams)}</b> US streams and left out <b class="num">${big(r.totals.excludedQuantity)}</b> plays that RIAA doesn't count.</summary>
+      <div class="panel">${excl.length ? excl.map(([k, v]) => `<div class="xrow"><span>${esc(k)}</span><span class="num">${big(v)}</span></div>`).join("") : "<p>Nothing excluded.</p>"}</div>
+    </details>
+    ${[...r.notes, ...(ctx.warnings ?? [])].map((n) => `<p class="note">${esc(n)}</p>`).join("")}
+  </main>${footer()}`;
+  wireCommon(r, ctx);
+  app.querySelector<HTMLButtonElement>('[data-act="more"]')?.addEventListener("click", () => { view.showAll = !view.showAll; renderSimple(r, ctx); });
+}
+
+function renderResults(r: Results, ctx: Ctx) {
+  if (r.totals.certifiedCount === 0) return renderSimple(r, ctx);
   const items = view.tab === "single" ? r.singles : r.albums;
   const certified = items.filter((i) => i.current.level !== "none");
   const riseAll = onTheRise(r).filter((i) => i.type === view.tab);
@@ -161,19 +218,9 @@ function renderResults(r: Results, ctx: { name: string; demo: boolean; warnings?
 
   app.innerHTML = `${nav()}
   <main class="wrap">
-    ${ctx.demo ? `<div class="demo-banner"><span><b>Sample data.</b> A made-up artist with two years of DistroKid statements.</span><button class="btn btn-primary btn-sm" data-act="connect">${dk()}Connect your DistroKid</button></div>` : ""}
+    ${demoBanner(ctx)}
     <section class="summary">
-      <div class="summary-top">
-        <div>
-          <div class="eyebrow src-line">${dk("dk-inline")}DistroKid · statements through ${monthName(r.asOf)}</div>
-          <h1>${esc(ctx.name)}</h1>
-          <p class="sub">${r.totals.certifiedCount ? `${r.totals.certifiedCount} release${r.totals.certifiedCount > 1 ? "s have" : " has"} enough units to apply for certification.` : closest ? `Closest to the next plaque: ${esc(closest.title)}, ${Math.round(closest.next.pct * 100)}% of the way to ${closest.next.label}.` : "No US streams found yet."}</p>
-        </div>
-        <div class="summary-actions">
-          <button class="btn btn-primary btn-sm" data-act="share">Share your progress</button>
-          <button class="btn btn-ghost btn-sm" data-act="copy" id="copy-btn">Copy link</button>
-        </div>
-      </div>
+      ${summaryHead(r, ctx, `${r.totals.certifiedCount} release${r.totals.certifiedCount > 1 ? "s have" : " has"} enough units to apply for certification.`)}
       <div class="stats">
         <div class="stat"><b class="num g">${r.totals.certifiedCount}</b><small>Eligible now</small></div>
         <div class="stat"><b class="num">${r.totals.trackedCount}</b><small>Songs + albums tracked</small></div>
@@ -227,8 +274,7 @@ function renderResults(r: Results, ctx: { name: string; demo: boolean; warnings?
 
   app.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((b) => b.onclick = () => { view.tab = b.dataset.tab as View["tab"]; view.filter = "all"; view.showAll = false; renderResults(r, ctx); });
   app.querySelectorAll<HTMLButtonElement>("[data-filter]").forEach((b) => b.onclick = () => { view.filter = b.dataset.filter as View["filter"]; view.showAll = false; renderResults(r, ctx); });
-  app.querySelector<HTMLButtonElement>('[data-act="share"]')?.addEventListener("click", () =>
-    openShare(r, ctx.name, ctx.demo ? "https://wheresmyplaque.com" : location.href));
+  wireCommon(r, ctx);
   app.querySelector<HTMLButtonElement>('[data-act="more"]')?.addEventListener("click", () => { view.showAll = !view.showAll; renderResults(r, ctx); });
 }
 
@@ -237,7 +283,7 @@ function renderLoading(done: number, total: number, msg?: string, opts: { title?
   app.innerHTML = `${nav()}<main class="wrap"><section class="loading">
     <div class="eyebrow">${opts.eyebrow ?? "Connected"}</div>
     <h1>${opts.title ?? "Reading your statements"}</h1>
-    <p>${msg ?? (total ? `${done} of ${total} statements processed.` : "Waiting for DistroKid to finish syncing. This usually takes a few minutes.")}</p>
+    <p>${msg ?? (total ? `${done} of ${total} statements processed.` : "Waiting for your distributor to finish syncing. This usually takes a few minutes.")}</p>
     ${opts.actions ? `<div class="cta-row">${opts.actions}</div>` : `<div class="bar"><i style="width:${Math.max(4, pct * 100)}%"></i></div>
     <p class="note">You can leave this page. Bookmark it and the results will be here.</p>`}
   </section></main>${footer()}`;
@@ -249,7 +295,7 @@ async function loadLive(token: string) {
   clearTimeout(pollTimer);
   if (!pollStarted) pollStarted = Date.now();
   const again = (ms: number) => (pollTimer = window.setTimeout(() => loadLive(token), ms));
-  const reconnect = `<button class="btn btn-primary" data-act="connect">${dk()}Reconnect DistroKid</button>`;
+  const reconnect = `<button class="btn btn-primary" data-act="connect">${linkIcon}Reconnect</button>`;
   try {
     const res = await fetch(`${fn("results")}?token=${encodeURIComponent(token)}`);
     if (res.status === 404) { renderLoading(0, 0, "That results link doesn't match a connection. Connect again to start fresh.", { eyebrow: "Not found", title: "We can't find this report", actions: reconnect }); return; }
@@ -257,7 +303,7 @@ async function loadLive(token: string) {
     const src = data.source;
     const name = src?.identity?.name || src?.identity?.accounts?.[0]?.name || "Your catalog";
     if (src.needsReconnect) {
-      renderLoading(0, 0, "DistroKid asked for your login again (a password change or a security check). Reconnect and we'll pick up where we left off.", { eyebrow: "Action needed", title: "DistroKid needs you to sign in again", actions: reconnect });
+      renderLoading(0, 0, `${esc(sourceName(src.target))} asked for your login again (a password change or a security check). Reconnect and we'll pick up where we left off.`, { eyebrow: "Action needed", title: `Sign in to ${esc(sourceName(src.target))} again`, actions: reconnect });
       return;
     }
     if (src.syncError) {
@@ -272,7 +318,11 @@ async function loadLive(token: string) {
     pollStarted = 0;
     const warnings = [...(src.warnings ?? [])];
     if (src.reports.failed) warnings.push(`${src.reports.failed} of ${src.reports.total} statements couldn't be read, so these numbers may be low. We retry them automatically.`);
-    renderResults(data.results, { name, demo: false, warnings });
+    if (src.target && src.target !== "DISTROKID" && data.results.totals.trackedCount === 0) {
+      renderLoading(0, 0, `Right now we can read DistroKid statements. Your ${esc(sourceName(src.target))} connection is saved, so your results will show up here as soon as we add it.`, { eyebrow: "Connected", title: `We can't read ${esc(sourceName(src.target))} statements yet`, actions: `<a class="btn btn-ghost" href="#demo">See a sample report</a>` });
+      return;
+    }
+    renderResults(data.results, { name, demo: false, warnings, target: src.target });
   } catch {
     renderLoading(0, 0, "Lost the connection to our server. Retrying…");
     again(6000);
@@ -289,8 +339,8 @@ async function openConnect() {
   closeModal();
   const m = document.createElement("div");
   m.className = "modal";
-  m.innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-label="Connect DistroKid">
-    <div class="modal-head"><span class="src-line">${dk("dk-inline")}Connect DistroKid</span><button data-act="close" aria-label="Close">×</button></div>
+  m.innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-label="Connect your label or distributor">
+    <div class="modal-head"><span>Connect your label or distributor</span><button data-act="close" aria-label="Close">×</button></div>
     ${LIVE ? `<div id="mogul-connect"></div>` : `<div class="modal-body">
       <p>Live connections turn on once this page is pointed at the Supabase backend and a Mogul Connect client ID.</p>
       <p>Until then, the sample report runs the exact same math on two years of made-up DistroKid statements.</p>
@@ -306,7 +356,6 @@ async function openConnect() {
     origin: EMBED_ORIGIN,
     container: document.getElementById("mogul-connect")!,
     clientId: CLIENT_ID,
-    target: "DISTROKID",
     getToken: async () => {
       const r = await fetch(fn("session-token"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: vid }) });
       if (!r.ok) throw new Error("token");
@@ -321,7 +370,7 @@ async function openConnect() {
     onExit: () => closeModal(),
     onError: (err) => {
       const box = document.querySelector(".modal-box");
-      if (box) box.insertAdjacentHTML("beforeend", `<div class="modal-body"><p>That didn't connect (${esc(err.code)}). Check your DistroKid login and try again.</p></div>`);
+      if (box) box.insertAdjacentHTML("beforeend", `<div class="modal-body"><p>That didn't connect (${esc(err.code)}). Check your login and try again.</p></div>`);
     },
   });
 }
@@ -332,7 +381,7 @@ async function openConnect() {
 function route() {
   clearTimeout(pollTimer);
   const h = location.hash.replace(/^#/, "");
-  if (h === "demo") renderResults(sampleResults(), { name: "June Harbor", demo: true });
+  if (h === "demo") renderResults(sampleResults(), { name: "June Harbor", demo: true, target: "DISTROKID" });
   else if (h.startsWith("r-")) loadLive(h.slice(2));
   else { renderLanding(); if (h === "rules") document.getElementById("rules")?.scrollIntoView(); }
   if (h !== "rules") window.scrollTo(0, 0);
