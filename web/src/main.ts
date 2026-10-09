@@ -103,7 +103,7 @@ async function downloadPackage(r: Results, item: CertItem, ctx: Ctx, btn: HTMLEl
 // ---------------------------------------------------------------------------
 function nav() {
   return `<nav class="nav wrap">
-    <a class="brand" href="#" aria-label="Where's My Plaque home"><img src="${logoUrl}" alt="Mogul" /><span>Where's My Plaque?</span></a>
+    <a class="brand" href="#" aria-label="Where's My Plaque? home"><img src="${wmpIcon}" alt="" /><span>Where's My Plaque?</span></a>
     <div class="nav-links">
       <a class="hide-sm" href="#rules">How it's counted</a>
       <a href="#demo">Sample report</a>
@@ -114,7 +114,7 @@ function nav() {
 function footer() {
   return `<footer class="wrap">
     <p>Estimates from your distributor statements using the RIAA's published unit rules. Not affiliated with or endorsed by the RIAA. Certification requires a label application and an audit by Gelfand, Rennert &amp; Feldman.</p>
-    <p>Powered by <a href="https://usemogul.com" target="_blank" rel="noopener">Mogul</a></p>
+    <a class="built-by" href="https://usemogul.com" target="_blank" rel="noopener"><span>Built by</span><img src="${logoUrl}" alt="Mogul" /></a>
   </footer>`;
 }
 
@@ -412,7 +412,7 @@ async function openConnect() {
   const m = document.createElement("div");
   m.className = "modal connect-modal";
   m.innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-label="Connect your label or distributor">
-    <div class="modal-head"><span class="src-line"><img class="wmp-head" src="${wmpIcon}" alt="">Connect your label or distributor</span><button data-act="close" aria-label="Minimize">×</button></div>
+    <div class="modal-head"><span>Connect your label or distributor</span><button data-act="close" aria-label="Minimize">×</button></div>
     ${LIVE ? `<div id="mogul-connect" class="loading-embed"><div class="embed-loader"><span class="spinner"></span>Opening secure connection…</div></div>` : `<div class="modal-body">
       <p>Live connections turn on once this page is pointed at the Supabase backend and a Mogul Connect client ID.</p>
       <p>Until then, the sample report runs the exact same math on two years of made-up DistroKid statements.</p>
