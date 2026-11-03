@@ -374,8 +374,16 @@ footer p { margin: 0; max-width: 52em; }
 .share-modal { z-index: 40; }
 
 /* connect modal ~25% smaller */
-.connect-modal .modal-box { width: min(400px, 100%); }
-.connect-modal #mogul-connect { height: min(500px, 70vh); }
+/* Sized to fit Mogul's login screen (~640px tall) without inner scrolling.
+   The embed can't report its own height, so this is a fixed fit; short screens still scroll. */
+.connect-modal .modal-box { width: min(420px, 100%); }
+.connect-modal #mogul-connect { height: min(660px, calc(100vh - 100px)); }
+@media (max-width: 520px) {
+  .connect-modal { padding: 0; place-items: stretch; }
+  .connect-modal .modal-box { width: 100%; height: 100%; border-radius: 0; border: 0; display: flex; flex-direction: column; }
+  .connect-modal #mogul-connect { height: auto; flex: 1; min-height: 0; }
+  .connect-modal #mogul-connect iframe { height: 100%; }
+}
 /* cert card download menu */
 .cert { position: relative; }
 .cert-dl { position: relative; margin-top: 12px; }
