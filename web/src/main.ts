@@ -388,8 +388,14 @@ let connectEl: HTMLElement | null = null;
 let tokenCache: { token: string; at: number } | null = null;
 const vidOnce = () => visitorId();
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+let memEmail = "";
+function savedEmail(): string { try { return localStorage.getItem("wmp_email") ?? memEmail; } catch { return memEmail; } }
+function saveEmail(e: string) { memEmail = e; try { localStorage.setItem("wmp_email", e); } catch { /* private mode */ } }
+
 async function mintToken(): Promise<string> {
-  const r = await fetch(fn("session-token"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: vidOnce() }) });
+  const email = savedEmail();
+  const r = await fetch(fn("session-token"), { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitorId: vidOnce(), email }) });
   if (!r.ok) throw new Error("token");
   return (await r.json()).token;
 }
@@ -397,6 +403,7 @@ async function mintToken(): Promise<string> {
 function prewarm() {
   if (!LIVE || tokenCache) return;
   import("@usemogul/connect-js").catch(() => {});
+  if (!EMAIL_RE.test(savedEmail())) return; // the session needs an email; mint once we have one
   mintToken().then((token) => (tokenCache = { token, at: Date.now() })).catch(() => {});
 }
 
@@ -418,7 +425,14 @@ async function openConnect() {
   m.className = "modal connect-modal";
   m.innerHTML = `<div class="modal-box" role="dialog" aria-modal="true" aria-label="Connect your label or distributor">
     <div class="modal-head"><span>Connect your label or distributor</span><button data-act="close" aria-label="Minimize">×</button></div>
-    ${LIVE ? `<div id="mogul-connect" class="loading-embed"><div class="embed-loader"><span class="spinner"></span>Opening secure connection…</div></div>` : `<div class="modal-body">
+    ${LIVE ? `<form class="modal-body email-step" id="email-step" novalidate>
+      <p>Enter your email to start. Mogul uses it to set up the secure connection to your distributor.</p>
+      <label for="connect-email" class="email-label">Email</label>
+      <input id="connect-email" type="email" autocomplete="email" inputmode="email" required placeholder="you@example.com" value="${esc(savedEmail())}">
+      <p class="email-err" aria-live="polite"></p>
+      <button class="btn btn-primary" type="submit">Continue</button>
+    </form>
+    <div id="mogul-connect" class="loading-embed" hidden><div class="embed-loader"><span class="spinner"></span>Opening secure connection…</div></div>` : `<div class="modal-body">
       <p>Live connections turn on once this page is pointed at the Supabase backend and a Mogul Connect client ID.</p>
       <p>Until then, the sample report runs the exact same math on two years of made-up DistroKid statements.</p>
       <div><a class="btn btn-primary btn-sm" href="#demo" data-act="close">Open the sample report</a></div></div>`}
@@ -429,6 +443,22 @@ async function openConnect() {
   m.addEventListener("click", (e) => { if ((e.target as HTMLElement).closest('[data-act="close"]')) LIVE ? hideConnect() : destroyConnect(); });
   if (!LIVE) return;
 
+  const form = m.querySelector<HTMLFormElement>("#email-step")!;
+  const input = form.querySelector<HTMLInputElement>("#connect-email")!;
+  setTimeout(() => input.focus(), 50);
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const email = input.value.trim().toLowerCase();
+    if (!EMAIL_RE.test(email)) { form.querySelector(".email-err")!.textContent = "Enter a valid email address."; input.focus(); return; }
+    if (email !== savedEmail()) tokenCache = null; // a prewarmed token belongs to the old email
+    saveEmail(email);
+    form.remove();
+    m.querySelector<HTMLElement>("#mogul-connect")!.hidden = false;
+    mountEmbed(m);
+  });
+}
+
+async function mountEmbed(m: HTMLElement) {
   const vid = vidOnce();
   const { MogulConnect } = await import("@usemogul/connect-js");
   const container = document.getElementById("mogul-connect")!;

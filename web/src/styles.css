@@ -405,3 +405,12 @@ footer p { margin: 0; max-width: 52em; }
 .built-by { display: inline-flex; align-items: center; gap: 10px; color: var(--fg-3); text-decoration: none; font-size: 13px; }
 .built-by img { height: 20px; width: auto; opacity: .85; }
 .built-by:hover img { opacity: 1; }
+
+/* connect: email step */
+.email-step { display: grid; gap: 10px; }
+.email-step p { margin: 0; }
+.email-label { font: 500 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3); }
+.email-step input { font: 500 16px/1.3 var(--font-body); color: var(--fg); background: var(--bg); border: 1px solid var(--line-2); border-radius: 12px; padding: 13px 14px; width: 100%; }
+.email-step input:focus { outline: none; border-color: var(--green); }
+.email-err { color: #ff8a80; font-size: 13px; min-height: 1em; }
+#mogul-connect[hidden] { display: none; }
