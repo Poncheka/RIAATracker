@@ -5,8 +5,8 @@ import { computeCertifications } from "../_shared/riaa.ts";
 import type { UsageByStore, UsageMonthly } from "../_shared/distrokid.ts";
 import { buildRiaaPackage, packageFileName } from "../_shared/riaa-package.ts";
 import { downloadReport } from "../_shared/mogul.ts";
+import { sourceDisplayName } from "../_shared/sources.ts";
 
-const NAMES: Record<string, string> = { DISTROKID: "DistroKid" };
 
 async function all<T>(q: (from: number) => PromiseLike<{ data: T[] | null; error: unknown }>) {
   const out: T[] = [];
@@ -44,14 +44,14 @@ Deno.serve(async (req) => {
       streams: Number(r.streams), trackDownloads: Number(r.track_downloads), albumDownloads: Number(r.album_downloads) }));
 
     const { data: reps } = await sb.from("reports").select("id, period, file_name").eq("source_id", src.id).eq("status", "ingested").order("period");
-    const statements: Array<{ name: string; text: string }> = [];
+    const statements: Array<{ name: string; data: Uint8Array }> = [];
     for (const r of reps ?? []) {
-      try { statements.push({ name: `${r.period ?? r.id}-${r.file_name ?? `report-${r.id}.csv`}`.replace(/[^\w.-]+/g, "_"), text: await downloadReport(r.id) }); }
+      try { statements.push({ name: `${r.period ?? r.id}-${r.file_name ?? `report-${r.id}.csv`}`.replace(/[^\w.-]+/g, "_"), data: await downloadReport(r.id) }); }
       catch (e) { console.error("statement download failed", r.id, e); }
     }
 
-    const files = buildRiaaPackage({ item, artist: item.artist, sourceName: NAMES[src.target] ?? src.target, asOf: results.asOf, byStore, statements });
-    const zip = zipSync(Object.fromEntries(Object.entries(files).map(([k, v]) => [k, strToU8(v)])), { level: 6 });
+    const files = buildRiaaPackage({ item, artist: item.artist, sourceName: sourceDisplayName(src.target, "Distributor"), asOf: results.asOf, byStore, statements });
+    const zip = zipSync(Object.fromEntries(Object.entries(files).map(([k, v]) => [k, typeof v === "string" ? strToU8(v) : v])), { level: 6 });
     return new Response(zip, { headers: { ...cors, "Content-Type": "application/zip", "Content-Disposition": `attachment; filename="${packageFileName(item)}"` } });
   } catch (e) {
     console.error(e);

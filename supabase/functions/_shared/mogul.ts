@@ -31,7 +31,6 @@ async function call<T = unknown>(method: string, path: string, body?: unknown): 
 // deno-lint-ignore no-explicit-any
 const pick = (o: any, ...keys: string[]) => keys.map((k) => o?.[k]).find((v) => v !== undefined && v !== null);
 
-/** POST /sessions — provisions (or looks up) the end user and mints a session token. */
 /** POST /sessions — provisions (or looks up) the end user's Mogul account and mints a session token. email is required. */
 export async function createSession(userId: string, name: string, email: string): Promise<{ token: string; accountId: string | null; expiresAt: string | null }> {
   // deno-lint-ignore no-explicit-any
@@ -58,23 +57,22 @@ export async function getSource(sourceId: number): Promise<MogulSource> {
   return { ...s, availableReports: s?.availableReports ?? s?.reports ?? [] };
 }
 
-/** GET /sources/reports/:id → presigned S3 URL → file text. */
-export async function downloadReport(reportId: number): Promise<string> {
+/** GET /sources/reports/:id → presigned S3 URL → raw file bytes (CSV, TSV or Excel). */
+export async function downloadReport(reportId: number): Promise<Uint8Array> {
   const res = await fetch(`${BASE()}/sources/reports/${reportId}`, { headers: { Authorization: AUTH() } });
   if (!res.ok) throw new MogulError(res.status, await res.text(), `/sources/reports/${reportId}`);
   const type = res.headers.get("content-type") ?? "";
-  const body = await res.text();
+  const bytes = new Uint8Array(await res.arrayBuffer());
   let url: string | undefined;
   if (type.includes("json")) {
-    const j = JSON.parse(body);
-    url = j?.url;
-  } else if (/^https?:\/\//.test(body.trim())) {
-    url = body.trim();
+    url = JSON.parse(new TextDecoder().decode(bytes))?.url;
   } else {
-    return body; // API followed the redirect and handed us the file
+    const head = new TextDecoder().decode(bytes.subarray(0, 2048)).trim();
+    if (bytes.length < 4096 && /^https?:\/\/\S+$/.test(head)) url = head;
+    else return bytes; // API followed the redirect and handed us the file
   }
   if (!url) throw new Error(`No presigned URL for report ${reportId}`);
   const file = await fetch(url);
   if (!file.ok) throw new Error(`S3 download failed for report ${reportId}: ${file.status}`);
-  return await file.text();
+  return new Uint8Array(await file.arrayBuffer());
 }

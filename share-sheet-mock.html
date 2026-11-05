@@ -1,0 +1,260 @@
+<title>Share Sheet Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800;900&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: a results page dimmed behind a centered share sheet. Card preview sits dead center,
+   a segmented toggle (and arrows) switches card types above it, actions sit in one row below.
+   Mogul look, single dark theme by design. */
+:root {
+  --bg: #080808; --surface: #111312; --surface-2: #171a18; --line: #232725; --line-2: #2f3431;
+  --fg: #f2f7f4; --fg-2: #a9b3ac; --fg-3: #6c7570; --green: #3ddc84; --green-ink: #06210f; --green-wash: #0a1a0f;
+  --gold-1: #f6dc7a; --gold-2: #c99a2e; --gold-3: #7a5a12; --plat-1: #f4f6f8; --plat-2: #b7bec6; --plat-3: #6b737c;
+  --dia-1: #e9fbff; --dia-2: #9fd8ea; --dia-3: #4b8aa3;
+  --font-display: "Figtree", system-ui, sans-serif; --font-body: "Inter", system-ui, sans-serif; --font-mono: "DM Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 var(--font-body); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+
+.notes { max-width: 980px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 8px; display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; align-items: baseline; }
+.notes h1 { font: 800 24px/1.1 var(--font-display); margin: 0; letter-spacing: -.02em; }
+.notes p { margin: 0; color: var(--fg-2); font-size: 14px; }
+
+.stage { position: relative; margin: 16px auto 40px; max-width: 980px; padding-inline: 20px; }
+.backdrop { border-radius: 22px; background: radial-gradient(120% 80% at 50% 0%, #0d1510, #050605 70%); border: 1px solid var(--line); padding-block: 36px; padding-inline: 16px; display: grid; place-items: center; }
+
+.sheet { width: min(520px, 100%); background: var(--surface); border: 1px solid var(--line-2); border-radius: 24px; box-shadow: 0 40px 100px -30px rgba(0,0,0,.9); overflow: hidden; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; }
+.sheet-head b { font: 700 17px/1 var(--font-display); }
+.x { background: none; border: 0; color: var(--fg-2); font-size: 22px; line-height: 1; padding: 4px 8px; cursor: pointer; }
+
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-inline: 20px; padding: 4px; border-radius: 999px; background: var(--bg); border: 1px solid var(--line); }
+.seg button { border: 0; background: transparent; padding: 9px 6px; border-radius: 999px; cursor: pointer; color: var(--fg-2); font: 600 13px/1 var(--font-display); white-space: nowrap; }
+.seg button[aria-selected="true"] { background: var(--surface-2); color: var(--fg); box-shadow: inset 0 0 0 1px var(--line-2); }
+
+.carousel { display: grid; grid-template-columns: 44px auto 44px; align-items: center; justify-content: center; gap: 8px; padding: 22px 12px 10px; }
+.arrow { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--surface-2); color: var(--fg); cursor: pointer; font-size: 18px; display: grid; place-items: center; }
+.arrow:hover { background: #1f2421; }
+.preview { width: 270px; height: 480px; border-radius: 16px; overflow: hidden; box-shadow: 0 0 0 1px var(--line-2), 0 24px 50px -20px rgba(0,0,0,.9); }
+.scale { width: 1080px; height: 1920px; transform: scale(.25); transform-origin: top left; }
+.dots { display: flex; justify-content: center; gap: 6px; padding-bottom: 6px; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--line-2); }
+.dots i.on { background: var(--green); width: 18px; border-radius: 3px; }
+
+.pick { margin: 10px 20px 0; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--fg-2); }
+.pick select { flex: 1; min-width: 0; font: 500 13px/1.3 var(--font-body); color: var(--fg); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 10px; padding: 9px 10px; }
+.pick[hidden] { display: none; }
+
+.actions { padding: 18px 20px 20px; display: grid; gap: 12px; border-top: 1px solid var(--line); margin-top: 16px; }
+.socials { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.soc { display: grid; justify-items: center; gap: 6px; background: none; border: 0; cursor: pointer; color: var(--fg-2); font-size: 11.5px; }
+.soc span.ic { width: 48px; height: 48px; border-radius: 14px; display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--line-2); color: var(--fg); }
+.soc:hover span.ic { border-color: var(--green); }
+.soc svg { width: 22px; height: 22px; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btn { display: inline-flex; justify-content: center; align-items: center; gap: 8px; border: 0; cursor: pointer; font: 600 14px/1 var(--font-display); padding: 13px 16px; border-radius: 999px; }
+.btn-primary { background: var(--green); color: var(--green-ink); }
+.btn-ghost { background: transparent; color: var(--fg); box-shadow: inset 0 0 0 1px var(--line-2); }
+.link { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 6px 6px 6px 12px; }
+.link code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 500 12.5px/1 var(--font-mono); color: var(--fg-2); }
+.link .btn { padding: 9px 14px; font-size: 13px; }
+.toast { text-align: center; font-size: 12.5px; color: var(--green); min-height: 1.2em; margin: -4px 0 0; }
+
+.legend { max-width: 980px; margin: 0 auto; padding-inline: 20px; padding-block: 0 48px; display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 24px; }
+.legend h3 { font: 700 15px/1.2 var(--font-display); margin: 0 0 6px; }
+.legend p { margin: 0; color: var(--fg-2); font-size: 13.5px; }
+@media (max-width: 760px) { .legend { grid-template-columns: 1fr; } .socials { grid-template-columns: repeat(5, 1fr); } .carousel { grid-template-columns: 36px auto 36px; } .arrow { width: 34px; height: 34px; } .preview { width: 216px; height: 384px; } .scale { transform: scale(.2); } }
+
+/* ---------- share cards at 1080x1920 ---------- */
+/* ---------- share card (1080x1920) ---------- */
+.sc { --tone: var(--gold-1); position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #0b0d0c; color: var(--fg);
+  display: flex; flex-direction: column; align-items: center; text-align: center; padding: 120px 96px 80px; font-family: var(--font-body); }
+.sc.plat { --tone: var(--plat-1); }
+.sc.diamond { --tone: var(--dia-2); }
+.sc-grid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.06) 2px, transparent 2px); background-size: 48px 48px; }
+.sc-glow { position: absolute; width: 1000px; height: 1000px; border-radius: 50%; top: 160px; left: 40px; background: var(--tone); filter: blur(180px); opacity: .22; }
+.sc > :not(.sc-grid, .sc-glow, .sc-rays, .sc-confetti) { position: relative; }
+.sc-kicker { white-space: nowrap; font: 500 36px/1 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--tone); }
+.sc-ring { width: 640px; height: 640px; margin-top: 70px; position: relative; }
+.sc-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.sc-ring .sc-medal { position: absolute; inset: 0; margin: auto; }
+.sc-medal { --s: 360px; width: var(--s); height: var(--s); border-radius: 50%; display: grid; place-items: center; position: relative;
+  background: radial-gradient(circle at 32% 28%, var(--m1), var(--m2) 55%, var(--m3)); box-shadow: inset 0 0 0 6px rgba(255,255,255,.2), 0 30px 60px -20px rgba(0,0,0,.9); }
+.sc-medal::before { content: ""; position: absolute; inset: 14%; border-radius: 50%; box-shadow: inset 0 0 0 4px rgba(0,0,0,.25), 0 0 0 3px rgba(255,255,255,.22);
+  background: repeating-radial-gradient(circle, rgba(0,0,0,.08) 0 2px, transparent 2px 6px); }
+.sc-medal span { position: relative; font: 700 calc(var(--s) * .17)/1 var(--font-mono); color: rgba(0,0,0,.6); text-transform: uppercase; letter-spacing: .04em; }
+.sc-medal.gold { --m1: var(--gold-1); --m2: var(--gold-2); --m3: var(--gold-3); }
+.sc-medal.plat { --m1: var(--plat-1); --m2: var(--plat-2); --m3: var(--plat-3); }
+.sc-medal.diamond { --m1: var(--dia-1); --m2: var(--dia-2); --m3: var(--dia-3); }
+.sc-medal.sm { --s: 112px; }
+.sc-medal.xl { --s: 460px; }
+.sc-pct { position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); background: var(--tone); color: #1d1604; font: 700 38px/1 var(--font-mono); padding: 18px 32px; border-radius: 99px; }
+.sc h2 { font: 900 128px/0.95 var(--font-display); letter-spacing: -.04em; margin: 80px 0 0; }
+.sc h2 em { font-style: normal; color: var(--tone); }
+.sc-song { font: 600 52px/1.2 var(--font-display); margin-top: 44px; max-width: 100%; text-wrap: balance; }
+.sc-song small { display: block; font: 400 38px/1.4 var(--font-body); color: var(--fg-2); margin-top: 8px; }
+.sc-facts { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; width: 100%; margin-top: 60px; }
+.sc-facts div { background: var(--surface); border: 3px solid var(--line); border-radius: 32px; padding: 40px 20px; }
+.sc-facts b { display: block; font: 500 72px/1 var(--font-mono); }
+.sc-facts span { font: 500 28px/1.3 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3); }
+.sc-cta { margin-top: auto; font: 600 40px/1.3 var(--font-body); color: var(--fg-2); }
+.sc-foot { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-top: 48px; font: 500 30px/1 var(--font-mono); color: var(--fg-3); }
+.sc-foot img { height: 52px; }
+
+.sc-cele { padding-top: 110px; }
+.sc-rays { position: absolute; width: 1800px; height: 1800px; left: -360px; top: -180px; border-radius: 50%; opacity: .16;
+  background: repeating-conic-gradient(from 0deg, var(--tone) 0 6deg, transparent 6deg 18deg); -webkit-mask: radial-gradient(circle, #000 0, transparent 62%); mask: radial-gradient(circle, #000 0, transparent 62%); }
+.sc-confetti { position: absolute !important; inset: 0; }
+.sc-confetti i { position: absolute; border-radius: 3px; }
+.sc-shout { font-size: 150px !important; margin-top: 40px !important; text-wrap: balance; }
+.sc-shout em { background: linear-gradient(180deg, var(--m1, var(--gold-1)), var(--tone)); -webkit-background-clip: text; background-clip: text; color: transparent !important; }
+.sc-cele.gold .sc-shout em { background-image: linear-gradient(180deg, var(--gold-1), var(--gold-2)); }
+.sc-hero { margin-top: 70px; filter: drop-shadow(0 0 80px color-mix(in srgb, var(--tone) 45%, transparent)); }
+.sc-sub { margin-top: 56px; font: 400 40px/1.35 var(--font-body); color: var(--fg-2); }
+.sc-sub b { color: var(--fg); font-weight: 600; }
+.sc-list { width: 100%; margin-top: 56px; display: grid; gap: 20px; text-align: left; }
+.sc-earn { display: flex; align-items: center; gap: 28px; background: rgba(17,19,18,.85); border: 3px solid var(--line); border-radius: 30px; padding: 22px 28px; }
+.sc-earn b { display: block; font: 600 44px/1.15 var(--font-display); }
+.sc-earn small { font: 500 30px/1.3 var(--font-mono); color: var(--fg-2); }
+.sc-more { font: 500 32px/1 var(--font-mono); color: var(--fg-3); padding-left: 8px; }
+.sc-fine { margin-top: auto; font: 400 28px/1.4 var(--font-body); color: var(--fg-3); }
+.sc-cele .sc-foot { margin-top: 28px; }
+
+.sc-wall { padding-top: 110px; }
+.sc-wall .sc-glow { top: 900px; left: -200px; background: var(--green); opacity: .16; }
+.sc-wall .who { font: 900 104px/1 var(--font-display); letter-spacing: -.04em; margin-top: 24px; }
+.sc-wall .tally { margin-top: 22px; font: 500 34px/1 var(--font-mono); color: var(--fg-2); }
+.sc-wall .tally b { color: var(--green); font-weight: 500; }
+.wall { width: 100%; margin-top: 70px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.slot { height: 360px; border-radius: 36px; background: rgba(17,19,18,.9); border: 3px solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; padding: 24px; }
+.slot .sc-medal { --s: 170px; }
+.slot b { font: 600 40px/1.15 var(--font-display); }
+.slot small { font: 500 28px/1 var(--font-mono); color: var(--fg-3); letter-spacing: .08em; text-transform: uppercase; }
+.slot.prog { border-style: dashed; background: transparent; }
+.hole { width: 170px; height: 170px; border-radius: 50%; position: relative; display: grid; place-items: center; background: conic-gradient(var(--gold-2) calc(var(--p) * 1%), #1d211f 0); }
+.hole::after { content: ""; position: absolute; inset: 16px; border-radius: 50%; background: #0b0d0c; }
+.hole i { position: relative; z-index: 1; font: 500 40px/1 var(--font-mono); font-style: normal; color: var(--gold-1); }
+.hole.plat { background: conic-gradient(var(--plat-2) calc(var(--p) * 1%), #1d211f 0); }
+.hole.plat i { color: var(--plat-1); }
+.sc-wall .sc-foot { margin-top: auto; }
+</style>
+
+<div class="notes">
+  <h1>Share sheet, v2 mockup</h1>
+  <p>Sample artist data. The buttons are wired to show what each would do.</p>
+</div>
+
+<div class="stage"><div class="backdrop">
+  <div class="sheet" role="dialog" aria-label="Share">
+    <div class="sheet-head"><b>Share</b><button class="x" aria-label="Close">×</button></div>
+    <div class="seg" role="tablist" id="seg">
+      <button role="tab" data-i="0" aria-selected="true">Celebrate</button>
+      <button role="tab" data-i="1" aria-selected="false">Countdown</button>
+      <button role="tab" data-i="2" aria-selected="false">Plaque wall</button>
+    </div>
+    <div class="carousel">
+      <button class="arrow" id="prev" aria-label="Previous card">‹</button>
+      <div class="preview"><div class="scale" id="card"></div></div>
+      <button class="arrow" id="next" aria-label="Next card">›</button>
+    </div>
+    <div class="dots" id="dots"><i class="on"></i><i></i><i></i></div>
+    <label class="pick" id="pick" hidden>Song
+      <select id="song">
+        <option value="0">Saltwater Hymn · 99% to Gold</option>
+        <option value="1">Low Orbit · 61% to 2× Platinum</option>
+        <option value="2">Glass Coast · 60% to Platinum</option>
+        <option value="3">Velvet Static · 48% to Gold</option>
+      </select>
+    </label>
+    <div class="actions">
+      <div class="socials">
+        <button class="soc" data-t="Opens your phone's share sheet with the image attached. Pick Instagram, TikTok, Messages, anything."><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></span>Instagram</button>
+        <button class="soc" data-t="Same as Instagram: the image goes through the phone's share sheet, so it lands as a TikTok photo post."><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.6 5.8A4.3 4.3 0 0 1 15.5 3h-3.1v12.4a2.6 2.6 0 1 1-2.6-2.6c.3 0 .5 0 .8.1V9.7a5.7 5.7 0 1 0 4.9 5.7V9a7.4 7.4 0 0 0 4.3 1.4V7.3a4.3 4.3 0 0 1-3.2-1.5z"/></svg></span>TikTok</button>
+        <button class="soc" data-t="Opens a post to X with your link. The card shows as the link preview."><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.8 3h3.1l-6.8 7.8L22 21h-6.2l-4.9-6.4L5.3 21H2.2l7.3-8.3L2 3h6.4l4.4 5.8L17.8 3zm-1.1 16.2h1.7L7.4 4.7H5.6l11.1 14.5z"/></svg></span>X</button>
+        <button class="soc" data-t="Opens a Facebook post with your link and the card as the preview."><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M14 8.5V6.8c0-.8.5-1 .9-1H17V2.2L14.1 2C10.9 2 10.2 4.4 10.2 5.9v2.6H8v3.7h2.2V22H14v-9.8h2.8l.4-3.7H14z"/></svg></span>Facebook</button>
+        <button class="soc" data-t="Opens a LinkedIn post with your link. Good for labels and managers."><span class="ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zM3 9.75h4v11H3v-11zm6.5 0h3.8v1.5h.1c.5-1 1.8-1.9 3.7-1.9 4 0 4.7 2.5 4.7 5.8v5.6h-4v-5c0-1.2 0-2.7-1.7-2.7s-1.9 1.3-1.9 2.6v5.1h-4v-11z"/></svg></span>LinkedIn</button>
+      </div>
+      <div class="row2">
+        <button class="btn btn-primary" data-t="Saved wheresmyplaque-card.png (1080×1920).">↓ Download image</button>
+        <button class="btn btn-ghost" data-t="Phone share sheet. On desktop this copies the link instead.">Share…</button>
+      </div>
+      <div class="link"><code>wheresmyplaque.com/#r-7f3c…a91</code><button class="btn btn-ghost" data-t="Link copied.">Copy link</button></div>
+      <p class="toast" id="toast" aria-live="polite"></p>
+    </div>
+  </div>
+</div></div>
+
+<div class="legend">
+  <div><h3>Card first</h3><p>The card is centered and is the biggest thing on screen. Switch with the tabs, the arrows, or a swipe on mobile. The song picker only appears on Countdown.</p></div>
+  <div><h3>Neutral tab names</h3><p>"Celebrate" instead of "I went Gold!", so the tab doesn't contradict a card that says Platinum. If nothing's certified yet, Celebrate is hidden and the sheet opens on Countdown.</p></div>
+  <div><h3>Straight to socials</h3><p>Instagram and TikTok can't take a post from a website, so those buttons hand the image to the phone's share sheet. X, Facebook and LinkedIn post your link, and the card shows as its preview.</p></div>
+</div>
+
+<script>
+const LOGO = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjQxIiB2aWV3Qm94PSIwIDAgMTUwIDQxIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDBfMTk2Xzg5MCkiPgo8cGF0aCBkPSJNNzUuMjUgMjAuNzczN1YzMi44NTk2SDY5LjQwNjJWMjIuMzU5NkM2OS40MDYyIDIwLjMwNDkgNjcuODkwNiAxOS44Njc0IDY2Ljk1MzEgMTkuODY3NEM2Ni4wMTU2IDE5Ljg2NzQgNjQuNTM5MSAyMC4zMzYyIDY0LjUzOTEgMjIuMzU5NlYzMi44NTk2SDU4LjY1NjJWMjIuMzU5NkM1OC42NTYyIDIwLjMwNDkgNTcuMTc5NyAxOS44Njc0IDU2LjI0MjIgMTkuODY3NEM1NS4zMDQ3IDE5Ljg2NzQgNTMuNzg5MSAyMC4zMzYyIDUzLjc4OTEgMjIuMzU5NlYzMi44NTk2SDQ3LjkwNjJWMTQuNTcwNkg1My43ODkxVjE1Ljk3NjhDNTQuNzI2NiAxNC45Mjk5IDU2LjE3MTkgMTQuMTMzMSA1OC4yOTY5IDE0LjEzMzFDNjAuODIwMyAxNC4xMzMxIDYyLjQ4NDQgMTUuMTA5NiA2My40NTMxIDE2LjU4NjJDNjQuNTM5MSAxNS4yNTAyIDY2LjE5NTMgMTQuMTMzMSA2OC43MTg3IDE0LjEzMzFDNzMuMTk1MyAxNC4xNDA5IDc1LjI1IDE3LjA5NCA3NS4yNSAyMC43NzM3WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTk3LjAzOTEgMjMuNzM0NkM5Ny4wMzkxIDI5LjE0ODcgOTIuOTYwOSAzMy4zMjg0IDg3LjIyNjYgMzMuMzI4NEM4MS40OTIyIDMzLjMyODQgNzcuNDE0MSAyOS4xNDA5IDc3LjQxNDEgMjMuNzM0NkM3Ny40MTQxIDE4LjMyODQgODEuNTIzNCAxNC4xNDA5IDg3LjIyNjYgMTQuMTQwOUM5Mi45NjA5IDE0LjE0MDkgOTcuMDM5MSAxOC4yODkzIDk3LjAzOTEgMjMuNzM0NlpNOTEuMTU2MyAyMy43MzQ2QzkxLjE1NjMgMjEuNjA5NiA4OS42MDE2IDE5LjgwNDkgODcuMjI2NiAxOS44MDQ5Qzg0Ljg1MTYgMTkuODA0OSA4My4zMjgxIDIxLjYwOTYgODMuMzI4MSAyMy43MzQ2QzgzLjMyODEgMjUuODU5NiA4NC44ODI4IDI3LjYzMzEgODcuMjI2NiAyNy42MzMxQzg5LjYwOTQgMjcuNjMzMSA5MS4xNTYzIDI1Ljg1OTYgOTEuMTU2MyAyMy43MzQ2WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTExOC42MTcgMTQuNTcwM1YzMS4yNzM0QzExOC42MTcgMzYuNDY4NyAxMTQuODY3IDQwLjE0ODQgMTA4LjM3NSA0MC4xNDg0QzEwNC40MDYgNDAuMTQ4NCAxMDAuOTA2IDM4LjU5MzcgOTkuNSAzNi4zMjgxTDEwMy44NjcgMzMuNzM0NEMxMDQuNDQ1IDM0LjYwMTYgMTA2LjAzMSAzNS40Mjk3IDEwOC4xMjUgMzUuNDI5N0MxMTEuNjk1IDM1LjQyOTcgMTEyLjc4MSAzMy40ODQ0IDExMi43ODEgMzAuNjMyOFYyOS44MDQ3QzExMS43NzMgMzEuMTAxNiAxMTAuMTg3IDMyLjAzOTEgMTA3LjY1NiAzMi4wMzkxQzEwMi4wNjIgMzIuMDM5MSA5OC44NTE2IDI3Ljg5MDYgOTguODUxNiAyMy4wOTM3Qzk4Ljg1MTYgMTguMjk2OSAxMDIuMDIzIDE0LjE0ODQgMTA3LjY1NiAxNC4xNDg0QzExMC4xNDggMTQuMTQ4NCAxMTEuNzY2IDE1LjE1NjIgMTEyLjc4MSAxNi41NjI1VjE0LjU3ODFMMTE4LjYxNyAxNC41NzAzWk0xMTIuNTU1IDIzLjA4NTlDMTEyLjU1NSAyMC42NzE5IDExMC44NTkgMTkuMTg3NSAxMDguNjU2IDE5LjE4NzVDMTA2LjI0MiAxOS4xODc1IDEwNC43NTggMjAuODQzNyAxMDQuNzU4IDIzLjA4NTlDMTA0Ljc1OCAyNS4zMjgxIDEwNi4yMzQgMjYuOTg0NCAxMDguNjU2IDI2Ljk4NDRDMTEwLjg1OSAyNi45NzY2IDExMi41NTUgMjUuNSAxMTIuNTU1IDIzLjA4NTlaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTQwLjE0OCAxNC41NzAzVjMyLjg1OTRIMTM0LjI2NlYzMS4yMDMxQzEzMy4yNTggMzIuMzkwNiAxMzEuNjcyIDMzLjMyODEgMTI5LjI4OSAzMy4zMjgxQzEyNC43MTEgMzMuMzI4MSAxMjIuNTc4IDI5LjcxODcgMTIyLjU3OCAyNi4wMzkxVjE0LjU3MDNIMTI4LjQyMlYyNC40NTMxQzEyOC40MjIgMjYuNTQ2OSAxMjkuNzU4IDI3LjU5MzggMTMxLjM0NCAyNy41OTM4QzEzMy4wNzggMjcuNTkzOCAxMzQuMjY2IDI2LjQ3NjYgMTM0LjI2NiAyNC40NTMxVjE0LjU3MDNIMTQwLjE0OFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xNTAgNy42MDkzOFYzMi44NTk0SDE0NC4xMTdWNy42MDkzOEgxNTBaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTEuOTUzMSAxNC4xNTZMMjMuMTAxNiAyMC40Njg1QzIzLjkzNzUgMjAuOTM3MiAyNC45OTIyIDIwLjY3MTYgMjUuNSAxOS44NTkxTDM2LjM1OTQgMi40NzYyOEMzNi43NzM0IDEuODEyMjIgMzcuNzk2OSAyLjEwOTEgMzcuNzk2OSAyLjg5MDM1VjMxLjQzNzJDMzcuNzk2OSAzMi4xNDgyIDM3LjIzNDQgMzIuNzI2MyAzNi41MzEyIDMyLjc0OTdMMTIuMjU3OCAzMy42MzI1QzExLjUxNTYgMzMuNjU2IDEwLjg5MDYgMzMuMDYyMiAxMC44OTA2IDMyLjMyVjE0Ljc3MzJDMTAuODk4NCAxNC4yMzQxIDExLjQ4NDQgMTMuODkwMyAxMS45NTMxIDE0LjE1NloiIGZpbGw9IiM0RURCODAiLz4KPHBhdGggZD0iTTM3LjMyMDMgMS4xNzE4OEMzNy4zMDQ3IDEuMTcxODggMjcuMTcxOSAwIDI3LjA0NjkgMEMyNi40NDUzIDAgMjUuODkwNiAwLjMwNDY4OCAyNS41NzAzIDAuODIwMzEyTDE2LjM3NSAxNS41NDY5TDEyLjQyOTcgMTMuMzEyNUMxMi4yMjY2IDEzLjIwMzEgMTEuNzUgMTMuMTAxNiAxMS43MzQ0IDEzLjEwMTZDMTEuNzE4OCAxMy4xMDE2IDEuMDkzNzUgMTEuODM1OSAxLjA2MjUgMTEuODM1OUMwLjQ3NjU2MyAxMS44MzU5IDAgMTIuMzEyNSAwIDEyLjg5ODRMMC4wNzgxMjUgMzIuNDYwOUMwLjA3ODEyNSAzMi45NDUzIDAuNDM3NSAzMy4zNDM4IDAuOTA2MjUgMzMuNDE0MUMwLjkyMTg3NSAzMy40MTQxIDExLjg3NSAzNC41NzgxIDExLjg5MDYgMzQuNTc4MUMxMS45MDYyIDM0LjU3ODEgMTIuMjg5MSAzNC42MDE2IDEyLjI4OTEgMzQuNjAxNkwzNi41NjI1IDMzLjcyNjZDMzcuNzk2OSAzMy42Nzk3IDM4Ljc2NTYgMzIuNjc5NyAzOC43NjU2IDMxLjQzNzVWMi44OTA2MkMzOC43NjU2IDIuMDE1NjIgMzguMTU2MiAxLjMxMjUgMzcuMzIwMyAxLjE3MTg4Wk0yNi4zNDM4IDEuMzM1OTRDMjYuNSAxLjA4NTk0IDI2Ljc5NjkgMC45NDUzMTIgMjcuMDkzOCAwLjk3NjU2MkwzNS4wMzEyIDEuOTA2MjVDMzUuMjY1NiAxLjkzNzUgMzUuMzkwNiAyLjE5NTMxIDM1LjI2NTYgMi4zOTg0NEwyNC43ODEyIDE5LjEwMTZDMjQuNDUzMSAxOS42MjUgMjMuNzY1NiAxOS43OTY5IDIzLjIzNDQgMTkuNDg0NEwxNy4xNTYyIDE1Ljk3NjZMMjYuMzQzOCAxLjMzNTk0Wk05LjkyMTg4IDMyLjMwNDdDOS45MjE4OCAzMi44ODI4IDkuNDIxODggMzMuMzI4MSA4Ljg1MTU2IDMzLjI3MzRMMS44NDM3NSAzMi41MzkxQzEuMzUxNTYgMzIuNDg0NCAwLjk3NjU2MiAzMi4wNzAzIDAuOTc2NTYyIDMxLjU3MDNWMTMuODU5NEMwLjk3NjU2MiAxMy4yNzM0IDEuNDg0MzggMTIuODIwMyAyLjA2MjUgMTIuODkwNkw5LjA3MDMxIDEzLjc0MjJDOS41NTQ2OSAxMy44MDQ3IDkuOTIxODggMTQuMjE4OCA5LjkyMTg4IDE0LjcxMDlWMzIuMzA0N1pNMzcuNzk2OSAzMS40Mzc1QzM3Ljc5NjkgMzIuMTQ4NCAzNy4yMzQ0IDMyLjcyNjYgMzYuNTMxMiAzMi43NUwxMi4yNTc4IDMzLjYzMjhDMTEuNTE1NiAzMy42NTYyIDEwLjg5MDYgMzMuMDYyNSAxMC44OTA2IDMyLjMyMDNWMTQuNzczNEMxMC44OTA2IDE0LjIyNjYgMTEuNDc2NiAxMy44OTA2IDExLjk0NTMgMTQuMTU2MkwyMy4wOTM4IDIwLjQ2ODhDMjMuOTI5NyAyMC45Mzc1IDI0Ljk4NDQgMjAuNjcxOSAyNS40OTIyIDE5Ljg1OTRMMzYuMzU5NCAyLjQ3NjU2QzM2Ljc3MzQgMS44MTI1IDM3Ljc5NjkgMi4xMDkzOCAzNy43OTY5IDIuODkwNjJWMzEuNDM3NVoiIGZpbGw9IndoaXRlIi8+CjwvZz4KPGRlZnM+CjxjbGlwUGF0aCBpZD0iY2xpcDBfMTk2Xzg5MCI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iNDAuMTQ4NCIgZmlsbD0id2hpdGUiLz4KPC9jbGlwUGF0aD4KPC9kZWZzPgo8L3N2Zz4K";
+const medal = (cls, label, extra = "") => `<div class="sc-medal ${cls} ${extra}"><span>${label}</span></div>`;
+const songs = [
+  { t: "Saltwater Hymn", pct: .988, rem: "6K", lvl: "Gold", cls: "gold", lab: "Gold", streams: "887K", eta: "<1 mo", kick: "Almost there" },
+  { t: "Low Orbit", pct: .61, rem: "771K", lvl: "2× Platinum", cls: "plat", lab: "2×", streams: "116M", eta: "2+ yrs", kick: "Halfway up" },
+  { t: "Glass Coast", pct: .60, rem: "402K", lvl: "Platinum", cls: "plat", lab: "Plat", streams: "60M", eta: "2+ yrs", kick: "Halfway up" },
+  { t: "Velvet Static", pct: .48, rem: "260K", lvl: "Gold", cls: "gold", lab: "Gold", streams: "39M", eta: "~11 mo", kick: "On the way" },
+];
+let seed = 7; const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+const confetti = Array.from({ length: 70 }, () => { const c = ["#f6dc7a","#c99a2e","#3ddc84","#f2f7f4","#b7bec6"][Math.floor(rnd()*5)];
+  return `<i style="left:${rnd()*100}%;top:${rnd()*62}%;width:${10+rnd()*16}px;height:${6+rnd()*10}px;background:${c};transform:rotate(${rnd()*360}deg);opacity:${.55+rnd()*.45}"></i>`; }).join("");
+const foot = (l = "wheresmyplaque.com") => `<div class="sc-foot"><span>${l}</span><img src="${LOGO}" alt="Mogul"></div>`;
+
+const cards = [
+  () => `<div class="sc sc-cele plat"><div class="sc-grid"></div><div class="sc-rays"></div><div class="sc-confetti">${confetti}</div>
+    <div class="sc-kicker">June Harbor</div>
+    <h2 class="sc-shout">I went <em>Platinum!</em></h2>
+    <div class="sc-hero">${medal("plat", "Plat", "xl")}</div>
+    <div class="sc-sub"><b>Low Orbit</b> crossed 1M US units</div>
+    <div class="sc-list">
+      <div class="sc-earn">${medal("plat", "Plat", "sm")}<div><b>Low Orbit</b><small>Platinum · 1.2M units</small></div></div>
+      <div class="sc-earn">${medal("gold", "Gold", "sm")}<div><b>Glass Coast</b><small>Gold · 598K units</small></div></div>
+    </div>
+    <div class="sc-fine">Estimate from distributor data. Not an official RIAA certification.</div>${foot()}</div>`,
+  (s) => { const C = 2*Math.PI*46; return `<div class="sc sc-count ${s.cls}"><div class="sc-grid"></div><div class="sc-glow"></div>
+    <div class="sc-kicker">${s.kick}</div>
+    <div class="sc-ring"><svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="none" stroke="#1d211f" stroke-width="3.2"/><circle cx="50" cy="50" r="46" fill="none" stroke="var(--tone)" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-s.pct)}"/></svg>
+      ${medal(s.cls, s.lab)}<div class="sc-pct">${s.pct > .985 ? (s.pct*100).toFixed(1) : Math.round(s.pct*100)}%</div></div>
+    <h2>${s.rem} units from <em>${s.lvl}</em></h2>
+    <div class="sc-song">${s.t}<small>June Harbor</small></div>
+    <div class="sc-facts"><div><b>${s.streams}</b><span>More US streams</span></div><div><b>${s.eta}</b><span>At current pace</span></div></div>
+    <div class="sc-cta">Stream it and help push it over.</div>${foot()}</div>`; },
+  () => `<div class="sc sc-wall"><div class="sc-grid"></div><div class="sc-glow"></div>
+    <div class="sc-kicker" style="color:var(--green)">Plaque wall</div>
+    <div class="who">June Harbor</div>
+    <div class="tally"><b>2 earned</b> · 4 filling in</div>
+    <div class="wall">
+      <div class="slot">${medal("plat","Plat")}<b>Low Orbit</b><small>Platinum</small></div>
+      <div class="slot">${medal("gold","Gold")}<b>Glass Coast</b><small>Gold</small></div>
+      <div class="slot prog"><div class="hole" style="--p:99"><i>99%</i></div><b>Saltwater Hymn</b><small>→ Gold</small></div>
+      <div class="slot prog"><div class="hole plat" style="--p:61"><i>61%</i></div><b>Low Orbit</b><small>→ 2× Plat</small></div>
+      <div class="slot prog"><div class="hole plat" style="--p:60"><i>60%</i></div><b>Glass Coast</b><small>→ Platinum</small></div>
+      <div class="slot prog"><div class="hole" style="--p:56"><i>56%</i></div><b>Low Orbit (album)</b><small>→ Gold</small></div>
+    </div>${foot()}</div>`,
+];
+
+let i = 0, song = 0;
+const $ = (id) => document.getElementById(id);
+function show() {
+  $("card").innerHTML = cards[i](songs[song]);
+  document.querySelectorAll("#seg button").forEach((b, k) => b.setAttribute("aria-selected", String(k === i)));
+  document.querySelectorAll("#dots i").forEach((d, k) => d.classList.toggle("on", k === i));
+  $("pick").hidden = i !== 1;
+}
+$("seg").addEventListener("click", (e) => { const b = e.target.closest("button"); if (b) { i = +b.dataset.i; show(); } });
+$("prev").onclick = () => { i = (i + 2) % 3; show(); };
+$("next").onclick = () => { i = (i + 1) % 3; show(); };
+$("song").onchange = (e) => { song = +e.target.value; show(); };
+let tx = null; const pv = document.querySelector(".preview");
+pv.addEventListener("touchstart", (e) => (tx = e.touches[0].clientX), { passive: true });
+pv.addEventListener("touchend", (e) => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 40) { i = (i + (dx < 0 ? 1 : 2)) % 3; show(); } tx = null; });
+document.querySelector(".actions").addEventListener("click", (e) => { const b = e.target.closest("[data-t]"); if (b) $("toast").textContent = b.dataset.t; });
+show();
+</script>

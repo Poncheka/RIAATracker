@@ -11,7 +11,7 @@ export interface PackageInput {
   sourceName: string;
   asOf: string; // YYYY-MM
   byStore: UsageByStore[]; // any rows; filtered to this release here
-  statements?: Array<{ name: string; text: string }>;
+  statements?: Array<{ name: string; data: string | Uint8Array }>;
   generatedAt?: Date;
 }
 
@@ -23,7 +23,7 @@ const month = (p: string) => { const [y, m] = p.split("-").map(Number); return y
 export const packageFileName = (item: CertItem) =>
   `riaa-package-${item.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40) || "release"}.zip`;
 
-export function buildRiaaPackage(input: PackageInput): Record<string, string> {
+export function buildRiaaPackage(input: PackageInput): Record<string, string | Uint8Array> {
   const { item, artist, sourceName, asOf } = input;
   const isAlbum = item.type === "album";
   const isrcs = new Set(item.isrcs);
@@ -148,13 +148,13 @@ ${isAlbum ? "<li><b>Suggested retail price</b> of the album.</li>" : ""}
 <p class="muted">Rules: RIAA ${isAlbum ? "Album" : "Digital Single"} Award certification audit requirements (Sept 2023). Not affiliated with or endorsed by the RIAA.</p>
 </body></html>`;
 
-  const files: Record<string, string> = {
+  const files: Record<string, string | Uint8Array> = {
     "00-READ-ME-FIRST.html": cover,
     "us-sales-by-dsp.csv": summaryCsv,
     "us-sales-by-month-and-dsp.csv": monthCsv,
     "tracks.csv": tracksCsv,
     "riaa-request-email.txt": email,
   };
-  for (const s of input.statements ?? []) files[`statements/${s.name}`] = s.text;
+  for (const s of input.statements ?? []) files[`statements/${s.name}`] = s.data;
   return files;
 }

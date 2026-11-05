@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2.45.4";
-import { aggregateByStore, parseDistroKidReport } from "./distrokid.ts";
+import { aggregateByStore } from "./statements.ts";
+import { readStatement } from "./read.ts";
 import { downloadReport, getSource } from "./mogul.ts";
 
 export const db = (): SupabaseClient =>
@@ -31,8 +32,8 @@ export async function ingestSource(sourceId: number): Promise<{ ingested: number
 
   for (const rep of pending ?? []) {
     try {
-      const text = await downloadReport(rep.id);
-      const parsed = parseDistroKidReport(text, { fallbackPeriod: rep.period ?? undefined });
+      const bytes = await downloadReport(rep.id);
+      const parsed = readStatement(bytes, { fallbackPeriod: rep.period ?? undefined, target: src.target ?? undefined });
       await sb.from("usage_monthly").delete().eq("report_id", rep.id);
       const rows = parsed.monthly.map((m) => ({
         source_id: sourceId, report_id: rep.id, period: m.period, isrc: m.isrc, upc: m.upc,

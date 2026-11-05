@@ -85,3 +85,95 @@ test("generic distributor headers (Platform / Territory / Units / Track Title)",
   assert.equal(p.monthly[0].streams, 150);
   assert.equal(p.excluded.byReason["Outside the US"], 999);
 });
+
+// ---- multi-source reader (synthetic fixtures; never commit customer statements) ----
+import { parseStatementText, parseStatementBytes, parseStatementTables } from "../supabase/functions/_shared/statements.ts";
+
+const utf16le = (s: string) => { const b = new Uint8Array(s.length * 2); for (let i = 0; i < s.length; i++) { b[i * 2] = s.charCodeAt(i) & 255; b[i * 2 + 1] = s.charCodeAt(i) >> 8; } return b; };
+
+test("UTF-16 without BOM, tab-delimited", () => {
+  const p = parseStatementBytes(utf16le("Period\tStore\tCountry\tTrack Title\tISRC\tQuantity\n2025-06\tSpotify\tUS\tSong\tUSABC2500001\t300\n"));
+  assert.equal(p.monthly[0].streams, 300);
+  assert.equal(p.monthly[0].period, "2025-06");
+});
+
+test("CR-only line endings and a header below a title block", () => {
+  const text = ["Label Royalty Statement", "Period: Q2 2025", "", "Sales Period,Retailer,Territory,Track,ISRC,Units,Sale Type", "2025-04,Apple Music,US,Song,USABC2500001,1500,Stream", "2025-04,iTunes,US,Song,USABC2500001,4,Download"].join("\r");
+  const p = parseStatementText(text);
+  assert.equal(p.monthly[0].streams, 1500);
+  assert.equal(p.monthly[0].trackDownloads, 4);
+});
+
+test("separate stream/download columns with year + month (RouteNote style)", () => {
+  const csv = "Year,Month,Store,Country,Title,ISRC,Stream,Downloads\n2025,3,Spotify,US,Song,USABC2500001,900,0\n2025,3,iTunes,US,Song,USABC2500001,0,2\n";
+  const p = parseStatementText(csv, { target: "ROUTE_NOTE" });
+  assert.equal(p.monthly[0].period, "2025-03");
+  assert.equal(p.monthly[0].streams, 900);
+  assert.equal(p.monthly[0].trackDownloads, 2);
+});
+
+test("worldwide-only rows are excluded as 'No country breakdown'", () => {
+  const csv = "Period,Source,Region,Title,ISRC,Net Units\n2025-01,Spotify Premium,All,Song,USABC2500001,5000\n";
+  const p = parseStatementText(csv, { target: "ROYALTY_SHARE" });
+  assert.equal(p.monthly.length, 0);
+  assert.equal(p.excluded.byReason["No country breakdown"], 5000);
+});
+
+test("publishing statements are rejected with a clear message", () => {
+  const csv = "Period,Source,Title,Writers,Territory,Units,Royalty\n2025-01,Spotify,Song,Jane Doe,US,1000,1.20\n";
+  const p = parseStatementText(csv);
+  assert.equal(p.monthly.length, 0);
+  assert.match(p.warnings[0], /^Unsupported statement: This is a publishing statement/);
+});
+
+test("voided rows reverse the original (Symphonic style)", () => {
+  const csv = "Activity Period,Digital Service Provider,Territory,Track Title,ISRC,Count,Delivery,Sale or Void\n2025-01,Spotify,US,Song,USABC2500001,1000,Streaming,Sale\n2025-01,Spotify,US,Song,USABC2500001,400,Streaming,Void\n";
+  const p = parseStatementText(csv, { target: "SYMPHONIC" });
+  assert.equal(p.monthly[0].streams, 600);
+});
+
+test("sync, physical and neighboring-rights sources say why they can't count", () => {
+  for (const target of ["ZYNC", "REDEYE_WORLDWIDE", "KOLLECTIVE"]) {
+    const p = parseStatementText("a,b\n1,2\n", { target });
+    assert.match(p.warnings[0], /^Unsupported statement:/);
+  }
+});
+
+test("revenue-only UnitedMasters file gets the friendly message", () => {
+  const text = readFileSync(new URL("./fixtures/unitedmasters-monthly-header.csv", import.meta.url), "utf8");
+  const p = parseStatementText(text, { target: "UNITED_MASTERS" });
+  assert.match(p.warnings[0], /^Unsupported statement: These statements only show money/);
+});
+
+test("excel-style tables: header found on a later sheet", () => {
+  const p = parseStatementTables([
+    { name: "Summary", rows: [["Statement summary"], ["Total", "123.45"]] },
+    { name: "Detail", rows: [["Sales Month", "DSP", "Country", "Track Title", "ISRC", "Quantity", "Sales Type"], ["2025-05-01", "Amazon Music Unlimited", "United States", "Song", "USABC2500001", "3000", "Streaming"]] },
+  ]);
+  assert.equal(p.monthly[0].streams, 3000);
+  assert.equal(p.meta?.sheet, "Detail");
+});
+
+test("cloud locker, radio and fees never count", () => {
+  assert.equal(classify("iTunes Match", "").kind, "excluded");
+  assert.equal(classify("Pandora", "Non-Interactive Radio").kind, "excluded");
+  assert.equal(classify("Spotify", "Distribution Fee").kind, "excluded");
+  assert.equal(classify("NetEase Cloud Music", "Stream").kind, "stream");
+});
+
+test("UMG US artist statement: Source is the territory, Excel =\"...\" quoting", () => {
+  const csv = [
+    "Summary", "RoySys,Acct_no,Dom_Earnings", '"US","=""1""","1.00"', "", "Detail",
+    "RoySys,Acct_no,Source,Title,DSP,Sales Type,Sales Date,Selection,Units",
+    '"US","=""1""","THIRD PARTY","SONG","=""SPOTIFY""","SUBSCRIPTIONS","=""06/25""","=""USABC2500001""","3000"',
+    '"US","=""1""","DOMESTIC UMG","SONG","=""APPLE""","PERMANENT DOWNLOAD","=""06/25""","=""USABC2500001""","5"',
+    '"US","=""1""","CANADA","SONG","=""SPOTIFY""","SUBSCRIPTIONS","=""06/25""","=""USABC2500001""","900"',
+    '"US","=""1""","THIRD PARTY","SONG","=""TIKTOK""","USER GENERATED STREAMS","=""06/25""","=""USABC2500001""","10000"',
+  ].join("\n");
+  const p = parseStatementText(csv, { target: "UNIVERSAL_MUSIC_NORTH_AMERICA" });
+  assert.equal(p.monthly[0].period, "2025-06");
+  assert.equal(p.monthly[0].isrc, "USABC2500001");
+  assert.equal(p.monthly[0].streams, 3000);
+  assert.equal(p.monthly[0].trackDownloads, 5);
+  assert.equal(p.excluded.byReason["Outside the US"], 900);
+});

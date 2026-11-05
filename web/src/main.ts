@@ -7,11 +7,11 @@ const dk = (cls = "dk-mark") => `<img class="${cls}" src="${dkLogo}" alt="" aria
 const linkIcon = `<svg class="dk-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>`;
 const CONNECT = "Connect label or distributor";
 const shareIcon = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v12"/><path d="m7 8 5-5 5 5"/></svg>`;
-const SOURCE_NAMES: Record<string, string> = { DISTROKID: "DistroKid", CD_BABY: "CD Baby", TUNECORE: "TuneCore", UNITEDMASTERS: "UnitedMasters", UNITED_MASTERS: "UnitedMasters", TOO_LOST: "Too Lost", TOOLOST: "Too Lost", AWAL: "AWAL", AMUSE: "Amuse", BELIEVE: "Believe" };
-const sourceName = (t?: string) => (t ? SOURCE_NAMES[t] ?? t.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()) : "your distributor");
+const sourceName = (t?: string) => sourceDisplayName(t);
 const sourceMark = (t?: string) => (t === "DISTROKID" ? dk("dk-inline") : "");
 import { parseDistroKidReport, mergeExcluded, aggregateByStore, type UsageByStore } from "../../supabase/functions/_shared/distrokid.ts";
 import { buildRiaaPackage, packageFileName } from "../../supabase/functions/_shared/riaa-package.ts";
+import { sourceDisplayName } from "../../supabase/functions/_shared/sources.ts";
 import { zipSync, strToU8 } from "fflate";
 import {
   computeCertifications, onTheRise, formatUnits as fmt,
@@ -59,11 +59,11 @@ function medal(level: Level, mult = 1, size?: number) {
 // ---------------------------------------------------------------------------
 let sampleCache: Results | null = null;
 let sampleStore: UsageByStore[] = [];
-let sampleFiles: Array<{ name: string; text: string }> = [];
+let sampleFiles: Array<{ name: string; data: string }> = [];
 function sampleResults(): Results {
   if (sampleCache) return sampleCache;
   const files = import.meta.glob("../../sample-data/*.tsv", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
-  sampleFiles = Object.entries(files).sort().map(([path, text]) => ({ name: path.split("/").pop()!, text }));
+  sampleFiles = Object.entries(files).sort().map(([path, text]) => ({ name: path.split("/").pop()!, data: text }));
   const parsed = Object.entries(files).sort().map(([path, text]) =>
     parseDistroKidReport(text, { fallbackPeriod: path.match(/(\d{4}-\d{2})/)?.[1] }));
   sampleStore = parsed.flatMap((p) => aggregateByStore(p.rows));
@@ -83,7 +83,7 @@ async function downloadPackage(r: Results, item: CertItem, ctx: Ctx, btn: HTMLEl
   try {
     if (ctx.demo) {
       const files = buildRiaaPackage({ item, artist: item.artist, sourceName: "DistroKid", asOf: r.asOf, byStore: sampleStore, statements: sampleFiles });
-      const zip = zipSync(Object.fromEntries(Object.entries(files).map(([k, v]) => [k, strToU8(v)])), { level: 6 });
+      const zip = zipSync(Object.fromEntries(Object.entries(files).map(([k, v]) => [k, typeof v === "string" ? strToU8(v) : v])), { level: 6 });
       saveBlob(new Blob([zip], { type: "application/zip" }), packageFileName(item));
     } else {
       const token = location.hash.replace(/^#r-/, "");
@@ -360,8 +360,19 @@ async function loadLive(token: string) {
     pollStarted = 0;
     const warnings = [...(src.warnings ?? [])];
     if (src.reports.failed) warnings.push(`${src.reports.failed} of ${src.reports.total} statements couldn't be read, so these numbers may be low. We retry them automatically.`);
+    const nothing = data.results.totals.trackedCount === 0;
+    const unsupported = (src.warnings ?? []).find((w: string) => w.startsWith("Unsupported statement:"));
+    if (nothing && unsupported) {
+      renderLoading(0, 0, `${esc(unsupported.replace(/^Unsupported statement:\s*/, ""))} If you also release through a distributor or label that reports streams, connect that one.`, { eyebrow: "Connected", title: `${esc(sourceName(src.target))} statements can't be counted`, actions: `<button class="btn btn-primary" data-act="connect">${linkIcon}Connect another</button><a class="btn btn-ghost" href="#demo">See a sample report</a>` });
+      return;
+    }
+    const noCountry = data.results.excluded?.byReason?.["No country breakdown"] ?? 0;
+    if (nothing && noCountry > 0) {
+      renderLoading(0, 0, `We found ${fmt(noCountry)} plays, but ${esc(sourceName(src.target))} reports them worldwide without a country split. The RIAA only counts US sales, so we can't tell how many apply. Ask ${esc(sourceName(src.target))} for a statement with a territory column, or connect another distributor.`, { eyebrow: "Connected", title: `${esc(sourceName(src.target))} doesn't split plays by country`, actions: `<button class="btn btn-primary" data-act="connect">${linkIcon}Connect another</button><a class="btn btn-ghost" href="#demo">See a sample report</a>` });
+      return;
+    }
     const noCounts = (src.warnings ?? []).some((w: string) => /Missing required column: (quantity|store)/.test(w));
-    if (data.results.totals.trackedCount === 0 && noCounts) {
+    if (nothing && noCounts) {
       renderLoading(0, 0, `${esc(sourceName(src.target))}'s statements only show money per song, not how many times it was streamed or bought, so there's nothing to count toward a plaque. If you also release through another distributor, connect that one.`, { eyebrow: "Connected", title: `${esc(sourceName(src.target))} doesn't report stream counts`, actions: `<button class="btn btn-primary" data-act="connect">${linkIcon}Connect another</button><a class="btn btn-ghost" href="#demo">See a sample report</a>` });
       return;
     }

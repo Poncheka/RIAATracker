@@ -1,0 +1,224 @@
+<title>Plaque Share Cards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800;900&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* Layout: three share-card options side by side (wrap on phones), each at its real social aspect ratio, with a short note under it.
+   Mogul look, single dark theme by design. */
+:root {
+  --bg: #080808; --surface: #111312; --surface-2: #171a18; --line: #232725; --line-2: #2f3431;
+  --fg: #f2f7f4; --fg-2: #a9b3ac; --fg-3: #6c7570;
+  --green: #3ddc84; --green-ink: #06210f;
+  --gold-1: #f6dc7a; --gold-2: #c99a2e; --gold-3: #7a5a12;
+  --plat-1: #f4f6f8; --plat-2: #b7bec6; --plat-3: #6b737c;
+  --font-display: "Figtree", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 var(--font-body); }
+.page { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 64px; }
+header h1 { font: 800 clamp(28px, 4vw, 40px)/1.05 var(--font-display); letter-spacing: -.03em; margin: 0 0 8px; }
+header p { color: var(--fg-2); margin: 0; max-width: 44em; }
+.eyebrow { font: 500 12px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--green); margin-bottom: 14px; }
+
+.options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; margin-top: 40px; align-items: start; }
+.opt { display: grid; gap: 16px; min-width: 0; }
+.opt-label { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.opt-label b { font: 700 18px/1.2 var(--font-display); }
+.opt-label span { font: 500 11px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3); }
+.opt p { margin: 0; color: var(--fg-2); font-size: 14px; }
+.opt ul { margin: 0; padding-left: 18px; color: var(--fg-2); font-size: 14px; display: grid; gap: 4px; }
+
+/* ---------- shared card bits ---------- */
+.card { position: relative; width: 100%; max-width: 380px; border-radius: 22px; overflow: hidden; background: #0b0d0c;
+  box-shadow: 0 0 0 1px var(--line), 0 30px 60px -30px rgba(61,220,132,.25); }
+.cardwrap { container-type: inline-size; width: 100%; max-width: 380px; }
+.card .grid { position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px); background-size: 4.4cqw 4.4cqw; pointer-events: none; }
+.card .glow { position: absolute; width: 90cqw; height: 90cqw; border-radius: 50%; filter: blur(14cqw); opacity: .35; pointer-events: none; }
+.foot { display: flex; justify-content: space-between; align-items: center; font: 500 2.9cqw/1 var(--font-mono); color: var(--fg-3); letter-spacing: .04em; }
+.foot img { height: 4.6cqw; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.medal { flex: none; width: var(--s); height: var(--s); border-radius: 50%; position: relative; display: grid; place-items: center;
+  background: radial-gradient(circle at 32% 28%, var(--m1), var(--m2) 55%, var(--m3)); box-shadow: inset 0 0 0 .5cqw rgba(255,255,255,.2), 0 2cqw 5cqw -2cqw rgba(0,0,0,.9); }
+.medal::before { content: ""; position: absolute; inset: 14%; border-radius: 50%; box-shadow: inset 0 0 0 .4cqw rgba(0,0,0,.25), 0 0 0 .25cqw rgba(255,255,255,.22);
+  background: repeating-radial-gradient(circle, rgba(0,0,0,.08) 0 1px, transparent 1px 3px); }
+.medal span { position: relative; font: 700 calc(var(--s) * .17)/1 var(--font-mono); color: rgba(0,0,0,.6); text-transform: uppercase; letter-spacing: .04em; }
+.gold { --m1: var(--gold-1); --m2: var(--gold-2); --m3: var(--gold-3); }
+.plat { --m1: var(--plat-1); --m2: var(--plat-2); --m3: var(--plat-3); }
+
+/* ---------- A: Lifetime stat card (4:5 feed post) ---------- */
+.a { aspect-ratio: 4 / 5; padding: 6cqw 7cqw; display: flex; flex-direction: column; gap: 3.6cqw; }
+.a .glow { background: var(--green); top: -40cqw; right: -30cqw; }
+.a .who { display: flex; align-items: center; gap: 3.6cqw; position: relative; }
+.a .avatar { width: 13cqw; height: 13cqw; border-radius: 50%; background: linear-gradient(135deg, #2b3a31, #13201a); box-shadow: 0 0 0 .6cqw var(--plat-2); display: grid; place-items: center; font: 800 5cqw/1 var(--font-display); color: var(--fg-2); }
+.a .who b { display: block; font: 800 6.2cqw/1.05 var(--font-display); letter-spacing: -.02em; }
+.a .who small { font: 500 3.2cqw/1.3 var(--font-body); color: var(--fg-2); }
+.a .stat { position: relative; border: .3cqw solid #1f4a30; border-radius: 4cqw; padding: 5.5cqw 5cqw 4cqw; text-align: center; background: rgba(10,26,15,.6); }
+.a .tab { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); background: var(--green); color: var(--green-ink); font: 700 3cqw/1 var(--font-display); padding: 1.6cqw 3.4cqw; border-radius: 99px; }
+.a .stat small { color: var(--fg-2); font-size: 3.4cqw; }
+.a .stat .big { font: 500 11cqw/1.05 var(--font-mono); letter-spacing: -.04em; margin-top: 1.5cqw; }
+.a .row { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 3.4cqw; border-top: .3cqw solid var(--line); padding-top: 3.5cqw; }
+.a .row div + div { border-left: .3cqw solid var(--line); }
+.a .row b { display: block; font: 500 5cqw/1.1 var(--font-mono); }
+.a .row span { font: 500 2.4cqw/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3); }
+.a .tiers { display: grid; gap: 1.6cqw; position: relative; }
+.a .tier { display: flex; align-items: center; gap: 2.4cqw; flex-wrap: wrap; }
+.a .tier-name { font: 600 2.8cqw/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; width: 100%; display: flex; gap: 1.6cqw; align-items: center; color: var(--fg-2); }
+.a .dot { width: 2.4cqw; height: 2.4cqw; border-radius: 50%; }
+.a .pill { background: var(--surface-2); border: .3cqw solid var(--line-2); border-radius: 99px; padding: 1.8cqw 3cqw; font: 500 3.2cqw/1 var(--font-body); }
+.a .pill i { font-style: normal; color: var(--fg-3); font-family: var(--font-mono); margin-left: 1.4cqw; }
+.a .pill.next { border-style: dashed; color: var(--fg-2); }
+.a .foot { margin-top: auto; position: relative; }
+
+/* ---------- B: Countdown (9:16 story) ---------- */
+.b { aspect-ratio: 9 / 16; padding: 8cqw 8cqw 6cqw; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4cqw; }
+.b .glow { background: var(--gold-2); top: 18cqw; left: 5cqw; opacity: .28; }
+.b .kicker { font: 500 3.2cqw/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold-1); position: relative; }
+.b .ring { position: relative; width: 56cqw; height: 56cqw; margin-top: 3cqw; }
+.b .ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.b .ring .medal { --s: 32cqw; position: absolute; inset: 0; margin: auto; }
+.b .pct { position: absolute; bottom: -1cqw; left: 50%; transform: translateX(-50%); background: var(--gold-1); color: #2b1f04; font: 700 3.4cqw/1 var(--font-mono); padding: 1.8cqw 3.2cqw; border-radius: 99px; }
+.b h2 { font: 900 11cqw/0.95 var(--font-display); letter-spacing: -.04em; margin: 5cqw 0 0; position: relative; text-wrap: balance; }
+.b h2 em { font-style: normal; color: var(--gold-1); }
+.b .song { font: 600 4.6cqw/1.2 var(--font-display); color: var(--fg); position: relative; }
+.b .song small { display: block; font: 400 3.4cqw/1.4 var(--font-body); color: var(--fg-2); margin-top: 1cqw; }
+.b .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 2.4cqw; width: 100%; margin-top: 3cqw; position: relative; }
+.b .facts div { background: var(--surface); border: .3cqw solid var(--line); border-radius: 3cqw; padding: 3.4cqw 2cqw; }
+.b .facts b { display: block; font: 500 6cqw/1 var(--font-mono); }
+.b .facts span { font: 500 2.5cqw/1.3 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--fg-3); }
+.b .cta { margin-top: auto; font: 600 3.4cqw/1.3 var(--font-body); color: var(--fg-2); position: relative; }
+.b .cta b { color: var(--green); }
+.b .foot { width: 100%; position: relative; }
+
+/* ---------- C: Plaque wall (1:1 square) ---------- */
+.c { aspect-ratio: 1 / 1; padding: 7cqw; display: flex; flex-direction: column; gap: 4cqw; }
+.c .glow { background: var(--green); bottom: -50cqw; left: -20cqw; opacity: .22; }
+.c .top { display: flex; justify-content: space-between; align-items: flex-start; position: relative; }
+.c .top b { font: 800 6.4cqw/1 var(--font-display); letter-spacing: -.02em; display: block; }
+.c .top small { font: 500 3cqw/1.4 var(--font-body); color: var(--fg-2); }
+.c .top .tally { text-align: right; }
+.c .top .tally b { font: 500 7cqw/1 var(--font-mono); color: var(--green); }
+.c .wall { display: grid; grid-template-columns: repeat(3, 1fr); gap: 3cqw; position: relative; flex: 1; }
+.c .slot { border-radius: 3cqw; background: var(--surface); border: .3cqw solid var(--line); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.8cqw; padding: 2.4cqw; text-align: center; }
+.c .slot .medal { --s: 15cqw; }
+.c .slot b { font: 600 3cqw/1.15 var(--font-display); }
+.c .slot small { font: 500 2.4cqw/1 var(--font-mono); color: var(--fg-3); text-transform: uppercase; letter-spacing: .08em; }
+.c .slot.empty { border-style: dashed; background: transparent; }
+.c .slot.empty .hole { width: 15cqw; height: 15cqw; border-radius: 50%; position: relative; background: conic-gradient(var(--gold-2) calc(var(--p) * 1%), #1d211f 0); display: grid; place-items: center; }
+.c .slot.empty .hole::after { content: ""; position: absolute; inset: 1.4cqw; border-radius: 50%; background: #0b0d0c; }
+.c .slot.empty .hole i { position: relative; z-index: 1; font: 500 3cqw/1 var(--font-mono); font-style: normal; color: var(--gold-1); }
+.c .slot.ghost { opacity: .35; }
+.c .foot { position: relative; }
+
+.notes { margin-top: 56px; border-top: 1px solid var(--line); padding-top: 28px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; }
+.notes h2 { font: 700 20px/1.2 var(--font-display); margin: 0 0 10px; }
+.notes p, .notes li { color: var(--fg-2); font-size: 14px; }
+.notes ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+
+@media (max-width: 980px) { .options { grid-template-columns: 1fr; justify-items: center; } .opt { max-width: 380px; width: 100%; } .notes { grid-template-columns: 1fr; } }
+</style>
+
+<div class="page">
+  <header>
+    <div class="eyebrow">Where's My Plaque · share card options</div>
+    <h1>Three ways to show off your progress</h1>
+    <p>All three use the sample artist's real numbers from the demo. Each one renders as a PNG for download and goes out through the phone's share sheet on mobile.</p>
+  </header>
+
+  <section class="options">
+    <!-- A -->
+    <div class="opt">
+      <div class="opt-label"><b>A · Lifetime</b><span>Feed post · 4:5</span></div>
+      <div class="cardwrap"><div class="card a">
+        <div class="grid"></div><div class="glow"></div>
+        <div class="who"><div class="avatar">JH</div><div><b>June Harbor</b><small>2 releases at certification level</small></div></div>
+        <div class="stat">
+          <span class="tab">Lifetime · US</span>
+          <small>RIAA units earned</small>
+          <div class="big">1,827,676</div>
+          <div class="row">
+            <div><b class="num">399M</b><span>US streams</span></div>
+            <div><b class="num">359K</b><span>Downloads</span></div>
+            <div><b class="num">11</b><span>Releases</span></div>
+          </div>
+        </div>
+        <div class="tiers">
+          <div class="tier"><div class="tier-name"><span class="dot" style="background:var(--plat-1)"></span>Platinum</div><span class="pill">Low Orbit<i>1.2M</i></span></div>
+          <div class="tier"><div class="tier-name"><span class="dot" style="background:var(--gold-1)"></span><span style="color:var(--gold-1)">Gold</span></div><span class="pill">Glass Coast<i>598K</i></span></div>
+          <div class="tier"><div class="tier-name"><span class="dot" style="background:var(--fg-3)"></span>Next up</div><span class="pill next">Saltwater Hymn<i>99%</i></span><span class="pill next">Velvet Static<i>48%</i></span></div>
+        </div>
+        <div class="foot"><span>wheresmyplaque.com</span><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjQxIiB2aWV3Qm94PSIwIDAgMTUwIDQxIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDBfMTk2Xzg5MCkiPgo8cGF0aCBkPSJNNzUuMjUgMjAuNzczN1YzMi44NTk2SDY5LjQwNjJWMjIuMzU5NkM2OS40MDYyIDIwLjMwNDkgNjcuODkwNiAxOS44Njc0IDY2Ljk1MzEgMTkuODY3NEM2Ni4wMTU2IDE5Ljg2NzQgNjQuNTM5MSAyMC4zMzYyIDY0LjUzOTEgMjIuMzU5NlYzMi44NTk2SDU4LjY1NjJWMjIuMzU5NkM1OC42NTYyIDIwLjMwNDkgNTcuMTc5NyAxOS44Njc0IDU2LjI0MjIgMTkuODY3NEM1NS4zMDQ3IDE5Ljg2NzQgNTMuNzg5MSAyMC4zMzYyIDUzLjc4OTEgMjIuMzU5NlYzMi44NTk2SDQ3LjkwNjJWMTQuNTcwNkg1My43ODkxVjE1Ljk3NjhDNTQuNzI2NiAxNC45Mjk5IDU2LjE3MTkgMTQuMTMzMSA1OC4yOTY5IDE0LjEzMzFDNjAuODIwMyAxNC4xMzMxIDYyLjQ4NDQgMTUuMTA5NiA2My40NTMxIDE2LjU4NjJDNjQuNTM5MSAxNS4yNTAyIDY2LjE5NTMgMTQuMTMzMSA2OC43MTg3IDE0LjEzMzFDNzMuMTk1MyAxNC4xNDA5IDc1LjI1IDE3LjA5NCA3NS4yNSAyMC43NzM3WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTk3LjAzOTEgMjMuNzM0NkM5Ny4wMzkxIDI5LjE0ODcgOTIuOTYwOSAzMy4zMjg0IDg3LjIyNjYgMzMuMzI4NEM4MS40OTIyIDMzLjMyODQgNzcuNDE0MSAyOS4xNDA5IDc3LjQxNDEgMjMuNzM0NkM3Ny40MTQxIDE4LjMyODQgODEuNTIzNCAxNC4xNDA5IDg3LjIyNjYgMTQuMTQwOUM5Mi45NjA5IDE0LjE0MDkgOTcuMDM5MSAxOC4yODkzIDk3LjAzOTEgMjMuNzM0NlpNOTEuMTU2MyAyMy43MzQ2QzkxLjE1NjMgMjEuNjA5NiA4OS42MDE2IDE5LjgwNDkgODcuMjI2NiAxOS44MDQ5Qzg0Ljg1MTYgMTkuODA0OSA4My4zMjgxIDIxLjYwOTYgODMuMzI4MSAyMy43MzQ2QzgzLjMyODEgMjUuODU5NiA4NC44ODI4IDI3LjYzMzEgODcuMjI2NiAyNy42MzMxQzg5LjYwOTQgMjcuNjMzMSA5MS4xNTYzIDI1Ljg1OTYgOTEuMTU2MyAyMy43MzQ2WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTExOC42MTcgMTQuNTcwM1YzMS4yNzM0QzExOC42MTcgMzYuNDY4NyAxMTQuODY3IDQwLjE0ODQgMTA4LjM3NSA0MC4xNDg0QzEwNC40MDYgNDAuMTQ4NCAxMDAuOTA2IDM4LjU5MzcgOTkuNSAzNi4zMjgxTDEwMy44NjcgMzMuNzM0NEMxMDQuNDQ1IDM0LjYwMTYgMTA2LjAzMSAzNS40Mjk3IDEwOC4xMjUgMzUuNDI5N0MxMTEuNjk1IDM1LjQyOTcgMTEyLjc4MSAzMy40ODQ0IDExMi43ODEgMzAuNjMyOFYyOS44MDQ3QzExMS43NzMgMzEuMTAxNiAxMTAuMTg3IDMyLjAzOTEgMTA3LjY1NiAzMi4wMzkxQzEwMi4wNjIgMzIuMDM5MSA5OC44NTE2IDI3Ljg5MDYgOTguODUxNiAyMy4wOTM3Qzk4Ljg1MTYgMTguMjk2OSAxMDIuMDIzIDE0LjE0ODQgMTA3LjY1NiAxNC4xNDg0QzExMC4xNDggMTQuMTQ4NCAxMTEuNzY2IDE1LjE1NjIgMTEyLjc4MSAxNi41NjI1VjE0LjU3ODFMMTE4LjYxNyAxNC41NzAzWk0xMTIuNTU1IDIzLjA4NTlDMTEyLjU1NSAyMC42NzE5IDExMC44NTkgMTkuMTg3NSAxMDguNjU2IDE5LjE4NzVDMTA2LjI0MiAxOS4xODc1IDEwNC43NTggMjAuODQzNyAxMDQuNzU4IDIzLjA4NTlDMTA0Ljc1OCAyNS4zMjgxIDEwNi4yMzQgMjYuOTg0NCAxMDguNjU2IDI2Ljk4NDRDMTEwLjg1OSAyNi45NzY2IDExMi41NTUgMjUuNSAxMTIuNTU1IDIzLjA4NTlaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTQwLjE0OCAxNC41NzAzVjMyLjg1OTRIMTM0LjI2NlYzMS4yMDMxQzEzMy4yNTggMzIuMzkwNiAxMzEuNjcyIDMzLjMyODEgMTI5LjI4OSAzMy4zMjgxQzEyNC43MTEgMzMuMzI4MSAxMjIuNTc4IDI5LjcxODcgMTIyLjU3OCAyNi4wMzkxVjE0LjU3MDNIMTI4LjQyMlYyNC40NTMxQzEyOC40MjIgMjYuNTQ2OSAxMjkuNzU4IDI3LjU5MzggMTMxLjM0NCAyNy41OTM4QzEzMy4wNzggMjcuNTkzOCAxMzQuMjY2IDI2LjQ3NjYgMTM0LjI2NiAyNC40NTMxVjE0LjU3MDNIMTQwLjE0OFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xNTAgNy42MDkzOFYzMi44NTk0SDE0NC4xMTdWNy42MDkzOEgxNTBaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTEuOTUzMSAxNC4xNTZMMjMuMTAxNiAyMC40Njg1QzIzLjkzNzUgMjAuOTM3MiAyNC45OTIyIDIwLjY3MTYgMjUuNSAxOS44NTkxTDM2LjM1OTQgMi40NzYyOEMzNi43NzM0IDEuODEyMjIgMzcuNzk2OSAyLjEwOTEgMzcuNzk2OSAyLjg5MDM1VjMxLjQzNzJDMzcuNzk2OSAzMi4xNDgyIDM3LjIzNDQgMzIuNzI2MyAzNi41MzEyIDMyLjc0OTdMMTIuMjU3OCAzMy42MzI1QzExLjUxNTYgMzMuNjU2IDEwLjg5MDYgMzMuMDYyMiAxMC44OTA2IDMyLjMyVjE0Ljc3MzJDMTAuODk4NCAxNC4yMzQxIDExLjQ4NDQgMTMuODkwMyAxMS45NTMxIDE0LjE1NloiIGZpbGw9IiM0RURCODAiLz4KPHBhdGggZD0iTTM3LjMyMDMgMS4xNzE4OEMzNy4zMDQ3IDEuMTcxODggMjcuMTcxOSAwIDI3LjA0NjkgMEMyNi40NDUzIDAgMjUuODkwNiAwLjMwNDY4OCAyNS41NzAzIDAuODIwMzEyTDE2LjM3NSAxNS41NDY5TDEyLjQyOTcgMTMuMzEyNUMxMi4yMjY2IDEzLjIwMzEgMTEuNzUgMTMuMTAxNiAxMS43MzQ0IDEzLjEwMTZDMTEuNzE4OCAxMy4xMDE2IDEuMDkzNzUgMTEuODM1OSAxLjA2MjUgMTEuODM1OUMwLjQ3NjU2MyAxMS44MzU5IDAgMTIuMzEyNSAwIDEyLjg5ODRMMC4wNzgxMjUgMzIuNDYwOUMwLjA3ODEyNSAzMi45NDUzIDAuNDM3NSAzMy4zNDM4IDAuOTA2MjUgMzMuNDE0MUMwLjkyMTg3NSAzMy40MTQxIDExLjg3NSAzNC41NzgxIDExLjg5MDYgMzQuNTc4MUMxMS45MDYyIDM0LjU3ODEgMTIuMjg5MSAzNC42MDE2IDEyLjI4OTEgMzQuNjAxNkwzNi41NjI1IDMzLjcyNjZDMzcuNzk2OSAzMy42Nzk3IDM4Ljc2NTYgMzIuNjc5NyAzOC43NjU2IDMxLjQzNzVWMi44OTA2MkMzOC43NjU2IDIuMDE1NjIgMzguMTU2MiAxLjMxMjUgMzcuMzIwMyAxLjE3MTg4Wk0yNi4zNDM4IDEuMzM1OTRDMjYuNSAxLjA4NTk0IDI2Ljc5NjkgMC45NDUzMTIgMjcuMDkzOCAwLjk3NjU2MkwzNS4wMzEyIDEuOTA2MjVDMzUuMjY1NiAxLjkzNzUgMzUuMzkwNiAyLjE5NTMxIDM1LjI2NTYgMi4zOTg0NEwyNC43ODEyIDE5LjEwMTZDMjQuNDUzMSAxOS42MjUgMjMuNzY1NiAxOS43OTY5IDIzLjIzNDQgMTkuNDg0NEwxNy4xNTYyIDE1Ljk3NjZMMjYuMzQzOCAxLjMzNTk0Wk05LjkyMTg4IDMyLjMwNDdDOS45MjE4OCAzMi44ODI4IDkuNDIxODggMzMuMzI4MSA4Ljg1MTU2IDMzLjI3MzRMMS44NDM3NSAzMi41MzkxQzEuMzUxNTYgMzIuNDg0NCAwLjk3NjU2MiAzMi4wNzAzIDAuOTc2NTYyIDMxLjU3MDNWMTMuODU5NEMwLjk3NjU2MiAxMy4yNzM0IDEuNDg0MzggMTIuODIwMyAyLjA2MjUgMTIuODkwNkw5LjA3MDMxIDEzLjc0MjJDOS41NTQ2OSAxMy44MDQ3IDkuOTIxODggMTQuMjE4OCA5LjkyMTg4IDE0LjcxMDlWMzIuMzA0N1pNMzcuNzk2OSAzMS40Mzc1QzM3Ljc5NjkgMzIuMTQ4NCAzNy4yMzQ0IDMyLjcyNjYgMzYuNTMxMiAzMi43NUwxMi4yNTc4IDMzLjYzMjhDMTEuNTE1NiAzMy42NTYyIDEwLjg5MDYgMzMuMDYyNSAxMC44OTA2IDMyLjMyMDNWMTQuNzczNEMxMC44OTA2IDE0LjIyNjYgMTEuNDc2NiAxMy44OTA2IDExLjk0NTMgMTQuMTU2MkwyMy4wOTM4IDIwLjQ2ODhDMjMuOTI5NyAyMC45Mzc1IDI0Ljk4NDQgMjAuNjcxOSAyNS40OTIyIDE5Ljg1OTRMMzYuMzU5NCAyLjQ3NjU2QzM2Ljc3MzQgMS44MTI1IDM3Ljc5NjkgMi4xMDkzOCAzNy43OTY5IDIuODkwNjJWMzEuNDM3NVoiIGZpbGw9IndoaXRlIi8+CjwvZz4KPGRlZnM+CjxjbGlwUGF0aCBpZD0iY2xpcDBfMTk2Xzg5MCI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iNDAuMTQ4NCIgZmlsbD0id2hpdGUiLz4KPC9jbGlwUGF0aD4KPC9kZWZzPgo8L3N2Zz4K" alt="Mogul"></div>
+      </div></div>
+      <p>Closest to the Muso layout. One big number, then the plaques grouped by level. It works for artists who already have something to show.</p>
+      <ul><li>Weak for artists with nothing certified yet. The big number reads small.</li></ul>
+    </div>
+
+    <!-- B -->
+    <div class="opt">
+      <div class="opt-label"><b>B · Countdown</b><span>Story · 9:16</span></div>
+      <div class="cardwrap"><div class="card b">
+        <div class="grid"></div><div class="glow"></div>
+        <div class="kicker">Almost there</div>
+        <div class="ring">
+          <svg viewBox="0 0 100 100" aria-hidden="true">
+            <circle cx="50" cy="50" r="46" fill="none" stroke="#1d211f" stroke-width="3.2"/>
+            <circle cx="50" cy="50" r="46" fill="none" stroke="#f6dc7a" stroke-width="3.2" stroke-linecap="round" stroke-dasharray="289.03" stroke-dashoffset="2.9"/>
+          </svg>
+          <div class="medal gold"><span>Gold</span></div>
+          <div class="pct">98.8%</div>
+        </div>
+        <h2>6K units from <em>Gold</em></h2>
+        <div class="song">Saltwater Hymn<small>June Harbor</small></div>
+        <div class="facts">
+          <div><b class="num">887K</b><span>More US streams</span></div>
+          <div><b class="num">&lt;1 mo</b><span>At current pace</span></div>
+        </div>
+        <div class="cta">Stream it and help push it over. <b>wheresmyplaque.com</b></div>
+        <div class="foot"><span>Estimated from distributor data</span><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjQxIiB2aWV3Qm94PSIwIDAgMTUwIDQxIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDBfMTk2Xzg5MCkiPgo8cGF0aCBkPSJNNzUuMjUgMjAuNzczN1YzMi44NTk2SDY5LjQwNjJWMjIuMzU5NkM2OS40MDYyIDIwLjMwNDkgNjcuODkwNiAxOS44Njc0IDY2Ljk1MzEgMTkuODY3NEM2Ni4wMTU2IDE5Ljg2NzQgNjQuNTM5MSAyMC4zMzYyIDY0LjUzOTEgMjIuMzU5NlYzMi44NTk2SDU4LjY1NjJWMjIuMzU5NkM1OC42NTYyIDIwLjMwNDkgNTcuMTc5NyAxOS44Njc0IDU2LjI0MjIgMTkuODY3NEM1NS4zMDQ3IDE5Ljg2NzQgNTMuNzg5MSAyMC4zMzYyIDUzLjc4OTEgMjIuMzU5NlYzMi44NTk2SDQ3LjkwNjJWMTQuNTcwNkg1My43ODkxVjE1Ljk3NjhDNTQuNzI2NiAxNC45Mjk5IDU2LjE3MTkgMTQuMTMzMSA1OC4yOTY5IDE0LjEzMzFDNjAuODIwMyAxNC4xMzMxIDYyLjQ4NDQgMTUuMTA5NiA2My40NTMxIDE2LjU4NjJDNjQuNTM5MSAxNS4yNTAyIDY2LjE5NTMgMTQuMTMzMSA2OC43MTg3IDE0LjEzMzFDNzMuMTk1MyAxNC4xNDA5IDc1LjI1IDE3LjA5NCA3NS4yNSAyMC43NzM3WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTk3LjAzOTEgMjMuNzM0NkM5Ny4wMzkxIDI5LjE0ODcgOTIuOTYwOSAzMy4zMjg0IDg3LjIyNjYgMzMuMzI4NEM4MS40OTIyIDMzLjMyODQgNzcuNDE0MSAyOS4xNDA5IDc3LjQxNDEgMjMuNzM0NkM3Ny40MTQxIDE4LjMyODQgODEuNTIzNCAxNC4xNDA5IDg3LjIyNjYgMTQuMTQwOUM5Mi45NjA5IDE0LjE0MDkgOTcuMDM5MSAxOC4yODkzIDk3LjAzOTEgMjMuNzM0NlpNOTEuMTU2MyAyMy43MzQ2QzkxLjE1NjMgMjEuNjA5NiA4OS42MDE2IDE5LjgwNDkgODcuMjI2NiAxOS44MDQ5Qzg0Ljg1MTYgMTkuODA0OSA4My4zMjgxIDIxLjYwOTYgODMuMzI4MSAyMy43MzQ2QzgzLjMyODEgMjUuODU5NiA4NC44ODI4IDI3LjYzMzEgODcuMjI2NiAyNy42MzMxQzg5LjYwOTQgMjcuNjMzMSA5MS4xNTYzIDI1Ljg1OTYgOTEuMTU2MyAyMy43MzQ2WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTExOC42MTcgMTQuNTcwM1YzMS4yNzM0QzExOC42MTcgMzYuNDY4NyAxMTQuODY3IDQwLjE0ODQgMTA4LjM3NSA0MC4xNDg0QzEwNC40MDYgNDAuMTQ4NCAxMDAuOTA2IDM4LjU5MzcgOTkuNSAzNi4zMjgxTDEwMy44NjcgMzMuNzM0NEMxMDQuNDQ1IDM0LjYwMTYgMTA2LjAzMSAzNS40Mjk3IDEwOC4xMjUgMzUuNDI5N0MxMTEuNjk1IDM1LjQyOTcgMTEyLjc4MSAzMy40ODQ0IDExMi43ODEgMzAuNjMyOFYyOS44MDQ3QzExMS43NzMgMzEuMTAxNiAxMTAuMTg3IDMyLjAzOTEgMTA3LjY1NiAzMi4wMzkxQzEwMi4wNjIgMzIuMDM5MSA5OC44NTE2IDI3Ljg5MDYgOTguODUxNiAyMy4wOTM3Qzk4Ljg1MTYgMTguMjk2OSAxMDIuMDIzIDE0LjE0ODQgMTA3LjY1NiAxNC4xNDg0QzExMC4xNDggMTQuMTQ4NCAxMTEuNzY2IDE1LjE1NjIgMTEyLjc4MSAxNi41NjI1VjE0LjU3ODFMMTE4LjYxNyAxNC41NzAzWk0xMTIuNTU1IDIzLjA4NTlDMTEyLjU1NSAyMC42NzE5IDExMC44NTkgMTkuMTg3NSAxMDguNjU2IDE5LjE4NzVDMTA2LjI0MiAxOS4xODc1IDEwNC43NTggMjAuODQzNyAxMDQuNzU4IDIzLjA4NTlDMTA0Ljc1OCAyNS4zMjgxIDEwNi4yMzQgMjYuOTg0NCAxMDguNjU2IDI2Ljk4NDRDMTEwLjg1OSAyNi45NzY2IDExMi41NTUgMjUuNSAxMTIuNTU1IDIzLjA4NTlaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTQwLjE0OCAxNC41NzAzVjMyLjg1OTRIMTM0LjI2NlYzMS4yMDMxQzEzMy4yNTggMzIuMzkwNiAxMzEuNjcyIDMzLjMyODEgMTI5LjI4OSAzMy4zMjgxQzEyNC43MTEgMzMuMzI4MSAxMjIuNTc4IDI5LjcxODcgMTIyLjU3OCAyNi4wMzkxVjE0LjU3MDNIMTI4LjQyMlYyNC40NTMxQzEyOC40MjIgMjYuNTQ2OSAxMjkuNzU4IDI3LjU5MzggMTMxLjM0NCAyNy41OTM4QzEzMy4wNzggMjcuNTkzOCAxMzQuMjY2IDI2LjQ3NjYgMTM0LjI2NiAyNC40NTMxVjE0LjU3MDNIMTQwLjE0OFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xNTAgNy42MDkzOFYzMi44NTk0SDE0NC4xMTdWNy42MDkzOEgxNTBaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTEuOTUzMSAxNC4xNTZMMjMuMTAxNiAyMC40Njg1QzIzLjkzNzUgMjAuOTM3MiAyNC45OTIyIDIwLjY3MTYgMjUuNSAxOS44NTkxTDM2LjM1OTQgMi40NzYyOEMzNi43NzM0IDEuODEyMjIgMzcuNzk2OSAyLjEwOTEgMzcuNzk2OSAyLjg5MDM1VjMxLjQzNzJDMzcuNzk2OSAzMi4xNDgyIDM3LjIzNDQgMzIuNzI2MyAzNi41MzEyIDMyLjc0OTdMMTIuMjU3OCAzMy42MzI1QzExLjUxNTYgMzMuNjU2IDEwLjg5MDYgMzMuMDYyMiAxMC44OTA2IDMyLjMyVjE0Ljc3MzJDMTAuODk4NCAxNC4yMzQxIDExLjQ4NDQgMTMuODkwMyAxMS45NTMxIDE0LjE1NloiIGZpbGw9IiM0RURCODAiLz4KPHBhdGggZD0iTTM3LjMyMDMgMS4xNzE4OEMzNy4zMDQ3IDEuMTcxODggMjcuMTcxOSAwIDI3LjA0NjkgMEMyNi40NDUzIDAgMjUuODkwNiAwLjMwNDY4OCAyNS41NzAzIDAuODIwMzEyTDE2LjM3NSAxNS41NDY5TDEyLjQyOTcgMTMuMzEyNUMxMi4yMjY2IDEzLjIwMzEgMTEuNzUgMTMuMTAxNiAxMS43MzQ0IDEzLjEwMTZDMTEuNzE4OCAxMy4xMDE2IDEuMDkzNzUgMTEuODM1OSAxLjA2MjUgMTEuODM1OUMwLjQ3NjU2MyAxMS44MzU5IDAgMTIuMzEyNSAwIDEyLjg5ODRMMC4wNzgxMjUgMzIuNDYwOUMwLjA3ODEyNSAzMi45NDUzIDAuNDM3NSAzMy4zNDM4IDAuOTA2MjUgMzMuNDE0MUMwLjkyMTg3NSAzMy40MTQxIDExLjg3NSAzNC41NzgxIDExLjg5MDYgMzQuNTc4MUMxMS45MDYyIDM0LjU3ODEgMTIuMjg5MSAzNC42MDE2IDEyLjI4OTEgMzQuNjAxNkwzNi41NjI1IDMzLjcyNjZDMzcuNzk2OSAzMy42Nzk3IDM4Ljc2NTYgMzIuNjc5NyAzOC43NjU2IDMxLjQzNzVWMi44OTA2MkMzOC43NjU2IDIuMDE1NjIgMzguMTU2MiAxLjMxMjUgMzcuMzIwMyAxLjE3MTg4Wk0yNi4zNDM4IDEuMzM1OTRDMjYuNSAxLjA4NTk0IDI2Ljc5NjkgMC45NDUzMTIgMjcuMDkzOCAwLjk3NjU2MkwzNS4wMzEyIDEuOTA2MjVDMzUuMjY1NiAxLjkzNzUgMzUuMzkwNiAyLjE5NTMxIDM1LjI2NTYgMi4zOTg0NEwyNC43ODEyIDE5LjEwMTZDMjQuNDUzMSAxOS42MjUgMjMuNzY1NiAxOS43OTY5IDIzLjIzNDQgMTkuNDg0NEwxNy4xNTYyIDE1Ljk3NjZMMjYuMzQzOCAxLjMzNTk0Wk05LjkyMTg4IDMyLjMwNDdDOS45MjE4OCAzMi44ODI4IDkuNDIxODggMzMuMzI4MSA4Ljg1MTU2IDMzLjI3MzRMMS44NDM3NSAzMi41MzkxQzEuMzUxNTYgMzIuNDg0NCAwLjk3NjU2MiAzMi4wNzAzIDAuOTc2NTYyIDMxLjU3MDNWMTMuODU5NEMwLjk3NjU2MiAxMy4yNzM0IDEuNDg0MzggMTIuODIwMyAyLjA2MjUgMTIuODkwNkw5LjA3MDMxIDEzLjc0MjJDOS41NTQ2OSAxMy44MDQ3IDkuOTIxODggMTQuMjE4OCA5LjkyMTg4IDE0LjcxMDlWMzIuMzA0N1pNMzcuNzk2OSAzMS40Mzc1QzM3Ljc5NjkgMzIuMTQ4NCAzNy4yMzQ0IDMyLjcyNjYgMzYuNTMxMiAzMi43NUwxMi4yNTc4IDMzLjYzMjhDMTEuNTE1NiAzMy42NTYyIDEwLjg5MDYgMzMuMDYyNSAxMC44OTA2IDMyLjMyMDNWMTQuNzczNEMxMC44OTA2IDE0LjIyNjYgMTEuNDc2NiAxMy44OTA2IDExLjk0NTMgMTQuMTU2MkwyMy4wOTM4IDIwLjQ2ODhDMjMuOTI5NyAyMC45Mzc1IDI0Ljk4NDQgMjAuNjcxOSAyNS40OTIyIDE5Ljg1OTRMMzYuMzU5NCAyLjQ3NjU2QzM2Ljc3MzQgMS44MTI1IDM3Ljc5NjkgMi4xMDkzOCAzNy43OTY5IDIuODkwNjJWMzEuNDM3NVoiIGZpbGw9IndoaXRlIi8+CjwvZz4KPGRlZnM+CjxjbGlwUGF0aCBpZD0iY2xpcDBfMTk2Xzg5MCI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iNDAuMTQ4NCIgZmlsbD0id2hpdGUiLz4KPC9jbGlwUGF0aD4KPC9kZWZzPgo8L3N2Zz4K" alt="Mogul"></div>
+      </div></div>
+      <p>One song, one goal. It gives fans something to do, which makes it the most likely of the three to get shared, and it works for anyone with a track in motion, not just artists who've already hit.</p>
+      <ul><li>The artist picks which song. The default is the closest to its next level.</li></ul>
+    </div>
+
+    <!-- C -->
+    <div class="opt">
+      <div class="opt-label"><b>C · Plaque wall</b><span>Square · 1:1</span></div>
+      <div class="cardwrap"><div class="card c">
+        <div class="grid"></div><div class="glow"></div>
+        <div class="top"><div><b>June Harbor</b><small>Plaque wall</small></div><div class="tally"><b class="num">2</b><small>earned</small></div></div>
+        <div class="wall">
+          <div class="slot"><div class="medal plat" style="--s:15cqw"><span>Plat</span></div><b>Low Orbit</b><small>Platinum</small></div>
+          <div class="slot"><div class="medal gold" style="--s:15cqw"><span>Gold</span></div><b>Glass Coast</b><small>Gold</small></div>
+          <div class="slot empty"><div class="hole" style="--p:99"><i>99%</i></div><b>Saltwater Hymn</b><small>→ Gold</small></div>
+          <div class="slot empty"><div class="hole" style="--p:61"><i>61%</i></div><b>Low Orbit</b><small>→ 2× Plat</small></div>
+          <div class="slot empty"><div class="hole" style="--p:60"><i>60%</i></div><b>Glass Coast</b><small>→ Platinum</small></div>
+          <div class="slot empty"><div class="hole" style="--p:56"><i>56%</i></div><b>Low Orbit LP</b><small>→ Gold</small></div>
+        </div>
+        <div class="foot"><span>wheresmyplaque.com</span><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjQxIiB2aWV3Qm94PSIwIDAgMTUwIDQxIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8ZyBjbGlwLXBhdGg9InVybCgjY2xpcDBfMTk2Xzg5MCkiPgo8cGF0aCBkPSJNNzUuMjUgMjAuNzczN1YzMi44NTk2SDY5LjQwNjJWMjIuMzU5NkM2OS40MDYyIDIwLjMwNDkgNjcuODkwNiAxOS44Njc0IDY2Ljk1MzEgMTkuODY3NEM2Ni4wMTU2IDE5Ljg2NzQgNjQuNTM5MSAyMC4zMzYyIDY0LjUzOTEgMjIuMzU5NlYzMi44NTk2SDU4LjY1NjJWMjIuMzU5NkM1OC42NTYyIDIwLjMwNDkgNTcuMTc5NyAxOS44Njc0IDU2LjI0MjIgMTkuODY3NEM1NS4zMDQ3IDE5Ljg2NzQgNTMuNzg5MSAyMC4zMzYyIDUzLjc4OTEgMjIuMzU5NlYzMi44NTk2SDQ3LjkwNjJWMTQuNTcwNkg1My43ODkxVjE1Ljk3NjhDNTQuNzI2NiAxNC45Mjk5IDU2LjE3MTkgMTQuMTMzMSA1OC4yOTY5IDE0LjEzMzFDNjAuODIwMyAxNC4xMzMxIDYyLjQ4NDQgMTUuMTA5NiA2My40NTMxIDE2LjU4NjJDNjQuNTM5MSAxNS4yNTAyIDY2LjE5NTMgMTQuMTMzMSA2OC43MTg3IDE0LjEzMzFDNzMuMTk1MyAxNC4xNDA5IDc1LjI1IDE3LjA5NCA3NS4yNSAyMC43NzM3WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTk3LjAzOTEgMjMuNzM0NkM5Ny4wMzkxIDI5LjE0ODcgOTIuOTYwOSAzMy4zMjg0IDg3LjIyNjYgMzMuMzI4NEM4MS40OTIyIDMzLjMyODQgNzcuNDE0MSAyOS4xNDA5IDc3LjQxNDEgMjMuNzM0NkM3Ny40MTQxIDE4LjMyODQgODEuNTIzNCAxNC4xNDA5IDg3LjIyNjYgMTQuMTQwOUM5Mi45NjA5IDE0LjE0MDkgOTcuMDM5MSAxOC4yODkzIDk3LjAzOTEgMjMuNzM0NlpNOTEuMTU2MyAyMy43MzQ2QzkxLjE1NjMgMjEuNjA5NiA4OS42MDE2IDE5LjgwNDkgODcuMjI2NiAxOS44MDQ5Qzg0Ljg1MTYgMTkuODA0OSA4My4zMjgxIDIxLjYwOTYgODMuMzI4MSAyMy43MzQ2QzgzLjMyODEgMjUuODU5NiA4NC44ODI4IDI3LjYzMzEgODcuMjI2NiAyNy42MzMxQzg5LjYwOTQgMjcuNjMzMSA5MS4xNTYzIDI1Ljg1OTYgOTEuMTU2MyAyMy43MzQ2WiIgZmlsbD0id2hpdGUiLz4KPHBhdGggZD0iTTExOC42MTcgMTQuNTcwM1YzMS4yNzM0QzExOC42MTcgMzYuNDY4NyAxMTQuODY3IDQwLjE0ODQgMTA4LjM3NSA0MC4xNDg0QzEwNC40MDYgNDAuMTQ4NCAxMDAuOTA2IDM4LjU5MzcgOTkuNSAzNi4zMjgxTDEwMy44NjcgMzMuNzM0NEMxMDQuNDQ1IDM0LjYwMTYgMTA2LjAzMSAzNS40Mjk3IDEwOC4xMjUgMzUuNDI5N0MxMTEuNjk1IDM1LjQyOTcgMTEyLjc4MSAzMy40ODQ0IDExMi43ODEgMzAuNjMyOFYyOS44MDQ3QzExMS43NzMgMzEuMTAxNiAxMTAuMTg3IDMyLjAzOTEgMTA3LjY1NiAzMi4wMzkxQzEwMi4wNjIgMzIuMDM5MSA5OC44NTE2IDI3Ljg5MDYgOTguODUxNiAyMy4wOTM3Qzk4Ljg1MTYgMTguMjk2OSAxMDIuMDIzIDE0LjE0ODQgMTA3LjY1NiAxNC4xNDg0QzExMC4xNDggMTQuMTQ4NCAxMTEuNzY2IDE1LjE1NjIgMTEyLjc4MSAxNi41NjI1VjE0LjU3ODFMMTE4LjYxNyAxNC41NzAzWk0xMTIuNTU1IDIzLjA4NTlDMTEyLjU1NSAyMC42NzE5IDExMC44NTkgMTkuMTg3NSAxMDguNjU2IDE5LjE4NzVDMTA2LjI0MiAxOS4xODc1IDEwNC43NTggMjAuODQzNyAxMDQuNzU4IDIzLjA4NTlDMTA0Ljc1OCAyNS4zMjgxIDEwNi4yMzQgMjYuOTg0NCAxMDguNjU2IDI2Ljk4NDRDMTEwLjg1OSAyNi45NzY2IDExMi41NTUgMjUuNSAxMTIuNTU1IDIzLjA4NTlaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTQwLjE0OCAxNC41NzAzVjMyLjg1OTRIMTM0LjI2NlYzMS4yMDMxQzEzMy4yNTggMzIuMzkwNiAxMzEuNjcyIDMzLjMyODEgMTI5LjI4OSAzMy4zMjgxQzEyNC43MTEgMzMuMzI4MSAxMjIuNTc4IDI5LjcxODcgMTIyLjU3OCAyNi4wMzkxVjE0LjU3MDNIMTI4LjQyMlYyNC40NTMxQzEyOC40MjIgMjYuNTQ2OSAxMjkuNzU4IDI3LjU5MzggMTMxLjM0NCAyNy41OTM4QzEzMy4wNzggMjcuNTkzOCAxMzQuMjY2IDI2LjQ3NjYgMTM0LjI2NiAyNC40NTMxVjE0LjU3MDNIMTQwLjE0OFoiIGZpbGw9IndoaXRlIi8+CjxwYXRoIGQ9Ik0xNTAgNy42MDkzOFYzMi44NTk0SDE0NC4xMTdWNy42MDkzOEgxNTBaIiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMTEuOTUzMSAxNC4xNTZMMjMuMTAxNiAyMC40Njg1QzIzLjkzNzUgMjAuOTM3MiAyNC45OTIyIDIwLjY3MTYgMjUuNSAxOS44NTkxTDM2LjM1OTQgMi40NzYyOEMzNi43NzM0IDEuODEyMjIgMzcuNzk2OSAyLjEwOTEgMzcuNzk2OSAyLjg5MDM1VjMxLjQzNzJDMzcuNzk2OSAzMi4xNDgyIDM3LjIzNDQgMzIuNzI2MyAzNi41MzEyIDMyLjc0OTdMMTIuMjU3OCAzMy42MzI1QzExLjUxNTYgMzMuNjU2IDEwLjg5MDYgMzMuMDYyMiAxMC44OTA2IDMyLjMyVjE0Ljc3MzJDMTAuODk4NCAxNC4yMzQxIDExLjQ4NDQgMTMuODkwMyAxMS45NTMxIDE0LjE1NloiIGZpbGw9IiM0RURCODAiLz4KPHBhdGggZD0iTTM3LjMyMDMgMS4xNzE4OEMzNy4zMDQ3IDEuMTcxODggMjcuMTcxOSAwIDI3LjA0NjkgMEMyNi40NDUzIDAgMjUuODkwNiAwLjMwNDY4OCAyNS41NzAzIDAuODIwMzEyTDE2LjM3NSAxNS41NDY5TDEyLjQyOTcgMTMuMzEyNUMxMi4yMjY2IDEzLjIwMzEgMTEuNzUgMTMuMTAxNiAxMS43MzQ0IDEzLjEwMTZDMTEuNzE4OCAxMy4xMDE2IDEuMDkzNzUgMTEuODM1OSAxLjA2MjUgMTEuODM1OUMwLjQ3NjU2MyAxMS44MzU5IDAgMTIuMzEyNSAwIDEyLjg5ODRMMC4wNzgxMjUgMzIuNDYwOUMwLjA3ODEyNSAzMi45NDUzIDAuNDM3NSAzMy4zNDM4IDAuOTA2MjUgMzMuNDE0MUMwLjkyMTg3NSAzMy40MTQxIDExLjg3NSAzNC41NzgxIDExLjg5MDYgMzQuNTc4MUMxMS45MDYyIDM0LjU3ODEgMTIuMjg5MSAzNC42MDE2IDEyLjI4OTEgMzQuNjAxNkwzNi41NjI1IDMzLjcyNjZDMzcuNzk2OSAzMy42Nzk3IDM4Ljc2NTYgMzIuNjc5NyAzOC43NjU2IDMxLjQzNzVWMi44OTA2MkMzOC43NjU2IDIuMDE1NjIgMzguMTU2MiAxLjMxMjUgMzcuMzIwMyAxLjE3MTg4Wk0yNi4zNDM4IDEuMzM1OTRDMjYuNSAxLjA4NTk0IDI2Ljc5NjkgMC45NDUzMTIgMjcuMDkzOCAwLjk3NjU2MkwzNS4wMzEyIDEuOTA2MjVDMzUuMjY1NiAxLjkzNzUgMzUuMzkwNiAyLjE5NTMxIDM1LjI2NTYgMi4zOTg0NEwyNC43ODEyIDE5LjEwMTZDMjQuNDUzMSAxOS42MjUgMjMuNzY1NiAxOS43OTY5IDIzLjIzNDQgMTkuNDg0NEwxNy4xNTYyIDE1Ljk3NjZMMjYuMzQzOCAxLjMzNTk0Wk05LjkyMTg4IDMyLjMwNDdDOS45MjE4OCAzMi44ODI4IDkuNDIxODggMzMuMzI4MSA4Ljg1MTU2IDMzLjI3MzRMMS44NDM3NSAzMi41MzkxQzEuMzUxNTYgMzIuNDg0NCAwLjk3NjU2MiAzMi4wNzAzIDAuOTc2NTYyIDMxLjU3MDNWMTMuODU5NEMwLjk3NjU2MiAxMy4yNzM0IDEuNDg0MzggMTIuODIwMyAyLjA2MjUgMTIuODkwNkw5LjA3MDMxIDEzLjc0MjJDOS41NTQ2OSAxMy44MDQ3IDkuOTIxODggMTQuMjE4OCA5LjkyMTg4IDE0LjcxMDlWMzIuMzA0N1pNMzcuNzk2OSAzMS40Mzc1QzM3Ljc5NjkgMzIuMTQ4NCAzNy4yMzQ0IDMyLjcyNjYgMzYuNTMxMiAzMi43NUwxMi4yNTc4IDMzLjYzMjhDMTEuNTE1NiAzMy42NTYyIDEwLjg5MDYgMzMuMDYyNSAxMC44OTA2IDMyLjMyMDNWMTQuNzczNEMxMC44OTA2IDE0LjIyNjYgMTEuNDc2NiAxMy44OTA2IDExLjk0NTMgMTQuMTU2MkwyMy4wOTM4IDIwLjQ2ODhDMjMuOTI5NyAyMC45Mzc1IDI0Ljk4NDQgMjAuNjcxOSAyNS40OTIyIDE5Ljg1OTRMMzYuMzU5NCAyLjQ3NjU2QzM2Ljc3MzQgMS44MTI1IDM3Ljc5NjkgMi4xMDkzOCAzNy43OTY5IDIuODkwNjJWMzEuNDM3NVoiIGZpbGw9IndoaXRlIi8+CjwvZz4KPGRlZnM+CjxjbGlwUGF0aCBpZD0iY2xpcDBfMTk2Xzg5MCI+CjxyZWN0IHdpZHRoPSIxNTAiIGhlaWdodD0iNDAuMTQ4NCIgZmlsbD0id2hpdGUiLz4KPC9jbGlwUGF0aD4KPC9kZWZzPgo8L3N2Zz4K" alt="Mogul"></div>
+      </div></div>
+      <p>Earned plaques next to the empty spots still filling in. It reads as a collection, so it holds up whether you have zero plaques or ten.</p>
+      <ul><li>Simplest to keep current. Artists re-share it each time a spot fills.</li></ul>
+    </div>
+  </section>
+
+  <section class="notes">
+    <div>
+      <h2>What I changed from the mockup</h2>
+      <ul>
+        <li>No Silver. That's a UK BPI level, and the RIAA doesn't have one.</li>
+        <li>"Units earned" or "eligible" instead of "RIAA Certified." Certification needs an audit, and a screenshot claiming it without one could get an artist, or Mogul, into trouble.</li>
+        <li>Generic medals with no RIAA logo. The RIAA protects its trademarks.</li>
+      </ul>
+    </div>
+    <div>
+      <h2>How sharing would work</h2>
+      <ul>
+        <li><b>Download PNG.</b> Rendered in the browser at 1080 px, ready for Instagram, TikTok or X.</li>
+        <li><b>Share button.</b> On phones it opens the share sheet with the image attached.</li>
+        <li><b>Share link.</b> A public page for each artist with a preview image, so pasting the link into X, iMessage or LinkedIn shows the card.</li>
+      </ul>
+    </div>
+  </section>
+</div>
