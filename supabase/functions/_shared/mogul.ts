@@ -31,10 +31,10 @@ async function call<T = unknown>(method: string, path: string, body?: unknown): 
 // deno-lint-ignore no-explicit-any
 const pick = (o: any, ...keys: string[]) => keys.map((k) => o?.[k]).find((v) => v !== undefined && v !== null);
 
-/** POST /sessions — provisions (or looks up) the end user's Mogul account and mints a session token. email is required. */
-export async function createSession(userId: string, name: string, email: string): Promise<{ token: string; accountId: string | null; expiresAt: string | null }> {
+/** POST /sessions — provisions (or looks up) the end user's Mogul account and mints a session token. email is optional. */
+export async function createSession(userId: string, name: string, email?: string): Promise<{ token: string; accountId: string | null; expiresAt: string | null }> {
   // deno-lint-ignore no-explicit-any
-  const r: any = await call("POST", "/sessions", { userId, name, email });
+  const r: any = await call("POST", "/sessions", { userId, name, ...(email ? { email } : {}) });
   if (!r?.token) throw new Error("POST /sessions returned no token");
   return { token: String(r.token), accountId: r.accountId ?? null, expiresAt: r.expiresAt ?? null };
 }
