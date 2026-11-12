@@ -3,23 +3,43 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>Where's My Plaque?</title>
+    <title>Where's My Plaque? How close are your songs to RIAA Gold?</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
     <link rel="apple-touch-icon" href="./apple-touch-icon.png" />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Where's My Plaque?" />
-    <meta property="og:description" content="See how close your songs are to RIAA Gold, Platinum and Diamond. Free, from your distributor statements." />
+    <meta property="og:description" content="See how close your songs are to RIAA Gold, Platinum and Diamond. Free, from your label or distributor statements." />
+    <meta property="og:site_name" content="Where's My Plaque?" />
     <meta property="og:image" content="https://wheresmyplaque.com/og.png" />
     <meta property="og:url" content="https://wheresmyplaque.com/" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://wheresmyplaque.com/og.png" />
-    <meta name="description" content="Connect DistroKid and see how close every track and album is to RIAA Gold, Platinum and Diamond." />
+    <meta name="description" content="See how close every song and album is to RIAA Gold, Platinum and Diamond. Free. Connect your label or distributor and we count what the RIAA counts: US streams and downloads." />
+    <link rel="canonical" href="https://wheresmyplaque.com/" />
+    <link rel="alternate" type="text/markdown" href="https://wheresmyplaque.com/index.md" title="Markdown" />
+    <link rel="alternate" type="application/rss+xml" href="https://wheresmyplaque.com/guides/feed.xml" title="Where's My Plaque? guides" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" crossorigin="anonymous" />
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "Where's My Plaque?", "url": "https://wheresmyplaque.com/", "description": "Free tool that shows how close each song and album is to RIAA Gold, Platinum and Diamond, from the artist's own label or distributor royalty statements.", "applicationCategory": "MusicApplication", "operatingSystem": "Any", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "publisher": {"@type": "Organization", "name": "Mogul", "url": "https://usemogul.com"}}</script>
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite", "name": "Where's My Plaque?", "url": "https://wheresmyplaque.com/"}</script>
+    <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "How many streams is a Gold record?", "acceptedAnswer": {"@type": "Answer", "text": "500,000 units. For a single, 150 on-demand US streams = 1 unit, so 75 million US streams. For an album, 1,500 streams = 1 unit, so 750 million. Paid downloads count too."}}, {"@type": "Question", "name": "What does Where's My Plaque? count?", "acceptedAnswer": {"@type": "Answer", "text": "Only what an RIAA auditor would: US on-demand streams and paid downloads. It leaves out international plays, TikTok and other user-generated content, YouTube Content ID, radio-style plays and free downloads."}}, {"@type": "Question", "name": "Is it free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. The connection to your label or distributor is read-only and runs through Mogul Connect."}}]}</script>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <main class="wrap static-home">
+        <h1>How close are you to Gold?</h1>
+        <p>Connect your label or distributor and see every song and album's distance to RIAA Gold, Platinum and Diamond, counted the way the RIAA counts it: US on-demand streams and paid downloads only. Free and read-only.</p>
+        <h2>How we count</h2>
+        <ul>
+          <li>Single: 150 US on-demand streams = 1 unit. 1 paid download = 1 unit. Gold = 500,000 units (75 million US streams).</li>
+          <li>Album: 1,500 US streams, 10 track downloads or 1 album download = 1 unit. Every track counts, including singles released first.</li>
+          <li>Left out: international plays, TikTok and other user-generated content, YouTube Content ID, radio-style plays, free downloads.</li>
+        </ul>
+        <p><a href="/works-with/">Works with</a> DistroKid, TuneCore, CD Baby, The Orchard, EMPIRE, Symphonic, Sony, Warner, Universal and more.</p>
+        <p><a href="/riaa-calculator/">RIAA units calculator</a> · <a href="/guides/">Guides</a> · <a href="/guides/how-many-streams-for-gold/">How many streams is a Gold record?</a> · <a href="/guides/independent-artist-riaa-certification/">Can independent artists get certified?</a></p>
+      </main>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

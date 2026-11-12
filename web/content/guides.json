@@ -1,0 +1,39 @@
+[
+  { "slug": "how-many-streams-for-gold", "title": "How many streams is a Gold record?", "description": "A Gold single takes 75 million on-demand US streams, a Gold album 750 million. The full RIAA stream-to-unit math, with what does and doesn't count.",
+    "faq": [
+      ["How many streams do you need for a Gold record?", "A Gold single needs 500,000 units, which is 75 million on-demand US streams if streams are all you have (150 streams = 1 unit). A Gold album needs 750 million (1,500 streams = 1 album unit). Paid downloads count too."],
+      ["How many streams is Platinum?", "Platinum is 1,000,000 units: 150 million on-demand US streams for a single, or 1.5 billion for an album."],
+      ["Do international streams count toward RIAA certification?", "No. RIAA certification only counts sales and on-demand streams in the United States."]
+    ] },
+  { "slug": "independent-artist-riaa-certification", "title": "Can independent artists get RIAA certified?", "description": "Yes. The RIAA program is open to non-members and accepts distributor and artist royalty statements. What it costs, what you need, and who applies.",
+    "faq": [
+      ["Can an independent artist get a Gold record?", "Yes. The RIAA Gold & Platinum Program is open to members and non-members, and it accepts sales data from distributors or detailed artist royalty statements."],
+      ["How much does RIAA certification cost?", "Non-members pay $450 per certification level, paid up front. RIAA members pay $350 per title. The fee is non-refundable."],
+      ["Is RIAA certification automatic?", "No. Someone has to submit a request with sales and streaming data and pay for the audit."]
+    ] },
+  { "slug": "what-counts-toward-riaa-certification", "title": "What counts toward RIAA Gold and Platinum?", "description": "On-demand US streams and paid downloads count. TikTok, international plays, radio, Content ID and free downloads don't. The full list, plus which versions you can combine.",
+    "faq": [
+      ["Do TikTok plays count toward a Gold record?", "No. User-generated content on TikTok, Instagram, Facebook and similar platforms doesn't count toward RIAA certification."],
+      ["Do YouTube views count toward RIAA certification?", "On-demand streams of official videos count, including videos on the artist's or label's channel. User-generated uploads and Content ID claims on other people's videos don't."],
+      ["Do Pandora and SiriusXM plays count?", "Only on-demand streams count. Radio-style plays where the listener didn't pick the song, like SiriusXM or non-interactive Pandora stations, don't."],
+      ["Can clean and explicit versions be combined?", "Yes. For a single, clean and explicit versions, radio edits and remixes no more than 90 seconds longer than the original can be combined. Live versions are certified separately."]
+    ] },
+  { "slug": "riaa-album-units-explained", "title": "RIAA album units, explained", "description": "One album unit = 1 album download, 10 track downloads, or 1,500 US streams. How every track, including early singles, counts toward Gold.",
+    "faq": [
+      ["How many streams equal one album unit?", "1,500 on-demand US streams of the album's tracks equal one album unit. So do 10 track downloads or 1 album download."],
+      ["Do singles released before the album count toward the album?", "Yes, as long as the single appears on some version of the album."],
+      ["Can a song count toward both a single and album certification?", "Yes. The single and album programs are separate, so a track can count toward both."]
+    ] },
+  { "slug": "how-to-apply-for-riaa-certification", "title": "How to apply for RIAA certification", "description": "Step by step: confirm you've crossed the line, pull a US sales summary by store, prepare label copy, submit to the RIAA and work with the GR&F audit.",
+    "faq": [
+      ["Where do you apply for RIAA certification?", "Requests go through the RIAA's Quick Request Portal at certification.riaa.com."],
+      ["Who audits RIAA certifications?", "Gelfand, Rennert & Feldman (GR&F) audits requests on the RIAA's behalf."],
+      ["How long do you have to submit documents?", "All audit requirements must be provided within 30 days of the application date, or the request may be denied."]
+    ] },
+  { "slug": "how-to-get-an-official-riaa-plaque", "title": "How to get an official RIAA plaque", "description": "After certification, any contributor can order an official RIAA award from a licensed framer. Who can order, where, and how to spot a real one.",
+    "faq": [
+      ["Does the RIAA send you a plaque?", "No. Once a title is certified, artists, labels and contributors order official plaques from RIAA-licensed framers."],
+      ["Who can buy an RIAA plaque?", "Any artist, label or affiliated party who contributed to a certified title."],
+      ["How can you tell an RIAA plaque is official?", "Official RIAA awards carry an RIAA hologram and are made by RIAA-licensed framers."]
+    ] }
+]

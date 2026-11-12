@@ -105,7 +105,8 @@ function nav() {
   return `<nav class="nav wrap">
     <a class="brand" href="#" aria-label="Where's My Plaque? home"><img src="${wmpIcon}" alt="" /><span>Where's My Plaque?</span></a>
     <div class="nav-links">
-      <a class="hide-sm" href="#rules">How it's counted</a>
+      <a class="hide-sm" href="/guides/">Guides</a>
+      <a class="hide-sm" href="/riaa-calculator/">Calculator</a>
       <a href="#demo">Sample report</a>
     </div>
   </nav>`;
@@ -113,7 +114,7 @@ function nav() {
 
 function footer() {
   return `<footer class="wrap">
-    <p>Estimates from your distributor statements using the RIAA's published unit rules. Not affiliated with or endorsed by the RIAA. Certification requires a label application and an audit by Gelfand, Rennert &amp; Feldman.</p>
+    <p>Estimates from your label or distributor statements, using the RIAA's published unit rules. Not affiliated with or endorsed by the RIAA. Official certification requires an application to the RIAA and an audit by Gelfand, Rennert &amp; Feldman. <a href="/guides/">Guides</a> · <a href="/works-with/">Works with</a></p>
     <a class="built-by" href="https://usemogul.com" target="_blank" rel="noopener"><span>Built by</span><img src="${logoUrl}" alt="Mogul" /></a>
   </footer>`;
 }

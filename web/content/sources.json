@@ -1,0 +1,18 @@
+{
+  "checked": "2026-11",
+  "counts": {
+    "Distributors": ["DistroKid", "TuneCore", "CD Baby", "Too Lost", "The Orchard", "EMPIRE", "Symphonic", "Ditto", "RouteNote", "CMDSHFT", "Dashgo", "Eddy", "Distro Nation", "Foundation Media", "Zojack"],
+    "Labels": ["Sony Music", "Warner Music Group", "Universal Music (US)", "BMG", "Armada Music", "OWSLA", "Ninja Tune", "Matador Records", "Monstercat", "New West Records", "Position Music", "Integrity Music", "Sparta"]
+  },
+  "likely": ["INgrooves", "JTV Digital", "Universal Music (international)", "Platoon", "Bandcamp"],
+  "cannot": [
+    ["UnitedMasters", "Statements show earnings per song, not stream or sale counts."],
+    ["Royalty Share", "Plays are reported worldwide, with no US split."],
+    ["Dine Alone Records", "Plays are reported worldwide, with no US split."],
+    ["Secretly Distribution", "Album totals only, with no per-track split."],
+    ["Curb, Curve, Vydia (publishing)", "Songwriter royalties. RIAA certification counts recordings."],
+    ["Kollective", "Neighboring rights (radio, TV, public performance). Doesn't count."],
+    ["Zync", "Sync licensing. Doesn't count."],
+    ["RedEye Worldwide", "Physical-distribution invoices, not streams or downloads."]
+  ]
+}
